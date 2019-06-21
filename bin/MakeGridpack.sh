@@ -30,22 +30,44 @@ then
     echo cmssw_version: $CMSSW_VERSION|grep 10_6_0 || { echo "it is not 10_6_0... Exiting...";exit 1; }
 
     SHERPA_DATA_DIR=$CMSSW_BASE/src/GeneratorInterface/SherpaInterface/data
+    SHERPA_PYTHON_DIR=$CMSSW_BASE/src/MY/sherpa/python
+    mkdir -p $SHERPA_PYTHON_DIR
     WORKING_DIR=$(mktemp -d -t ${PROCESSNAME}_XXXXXXXX --tmpdir=$SHERPA_DATA_DIR)
-    cd $WORKING_DIR
     cp $CARDPATH $WORKING_DIR
+    GRIDPATH=$GENERATORTOOL_BASE/Sherpa/Gridpack/$PROCESSNAME
+    cd $WORKING_DIR
 
-    echo "#!/bin/bash" > Sherpa_MakeGridpack_${PROCESSNAME}.sh
-    echo "time $SHERPA_DATA_DIR/MakeSherpaLibs.sh -v -o LBCR -p $PROCESSNAME -m mpirun -M '-n $NCORE'" >> Sherpa_MakeGridpack_${PROCESSNAME}.sh
-    chmod +x Sherpa_MakeGridpack_${PROCESSNAME}.sh
+    SCRIPT=Sherpa_MakeGridpack_${PROCESSNAME}.sh
+    echo "#!/bin/bash" > $SCRIPT
+    echo "cd $WORKING_DIR" >> $SCRIPT
+    echo "time $SHERPA_DATA_DIR/MakeSherpaLibs.sh -v -o LBCR -p $PROCESSNAME -m mpirun -M '-n $NCORE'" >> $SCRIPT
+    echo 'test $? -ne 0 && { echo [GeneratorTool] Fail;exit $?; }' >>$SCRIPT
+    echo "$SHERPA_DATA_DIR/PrepareSherpaLibs.sh" >>$SCRIPT
+    echo "mv $WORKING_DIR $GRIDPATH" >>$SCRIPT
+    echo "cd $GRIDPATH" >>$SCRIPT
+    echo "sed -i '/FetchSherpack/ s/False/True/' sherpa_${PROCESSNAME}_MASTER_cff.py" >>$SCRIPT
+    echo "sed -i '/SherpackLocation/ s@\./@$GRIDPATH@' sherpa_${PROCESSNAME}_MASTER_cff.py" >>$SCRIPT
+    echo "mv sherpa_${PROCESSNAME}_MASTER_cff.py $SHERPA_PYTHON_DIR" >>$SCRIPT
+    echo "ln -sf $SHERPA_PYTHON_DIR/sherpa_${PROCESSNAME}_MASTER_cff.py ." >>$SCRIPT
+    echo "cd $SHERPA_PYTHON_DIR; scram b" >>$SCRIPT
+
+    chmod +x $SCRIPT
   
     if [[ $GENERATORTOOL_USECONDOR ]]
     then
-	condor_qsub -cwd -V -l nodes=1:ppn=$NCORE Sherpa_MakeGridpack_${PROCESSNAME}.sh
+	condor_submit -batch-name Sherap_MakeGridpack_$PROCESSNAME <<EOF
+executable = Sherpa_MakeGridpack_${PROCESSNAME}.sh
+output = Sherpa_MakeGridpack_${PROCESSNAME}.out
+error = Sherpa_MakeGridpack_${PROCESSNAME}.err
+log = Sherpa_MakeGridpack_${PROCESSNAME}.log
+request_cpus = $NCORE
+getenv = true
+queue
+EOF
+	condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
     else 
 	./Sherpa_MakeGridpack_${PROCESSNAME}.sh
     fi
-    
-    ln -sf $WORKING_DIR $GENERATORTOOL_BASE/Sherpa/Gridpack/$PROCESSNAME    
 else
     #### Madgraph Gridpack Generation #####
     echo "This is MG card"
@@ -54,19 +76,34 @@ else
 
     [[ $CMSSW_BASE ]] && { echo "Use new shell with 'setup.sh nocmsenv' for MG gridpack generation... Exiting...";exit 1; }
 
-    MG_DIR=$GENERATORTOOL_BASE/Tool/genproductions/bin/MadGraph5_aMCatNLO
+    GRIDPATH=$GENERATORTOOL_BASE/MG/Gridpack/$PROCESSNAME
+    mkdir -p $GRIDPATH
+    cd $GRIDPATH
+
+    MG_DIR=$GENERATORTOOL_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
     ln -sf $GENERATORTOOL_BASE/MG/Card $MG_DIR/Card
-    cd $MG_DIR
-    echo "#!/bin/bash" > MG_MakeGridpack_${PROCESSNAME}.sh
-    echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >> MG_MakeGridpack_${PROCESSNAME}.sh
-    chmod +x MG_MakeGridpack_${PROCESSNAME}.sh
+
+    SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
+    echo "#!/bin/bash" > $SCRIPT
+    echo "cd $MG_DIR" >>$SCRIPT
+    echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >>$SCRIPT
+    echo "mv ${PROCESSNAME} ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
+    chmod +x $SCRIPT
 
     if [[ $GENERATORTOOL_USECONDOR ]]
     then
-	condor_qsub -cwd -V -l nodes=1:ppn=$NCORE MG_MakeGridpack_${PROCESSNAME}.sh
+	condor_submit -batch-name MG_MakeGridpack_$PROCESSNAME <<EOF
+executable = MG_MakeGridpack_${PROCESSNAME}.sh
+output = MG_MakeGridpack_${PROCESSNAME}.out
+error = MG_MakeGridpack_${PROCESSNAME}.err
+log = MG_MakeGridpack_${PROCESSNAME}.log
+request_cpus = $NCORE
+getenv = true
+queue
+EOF
+	condor_wait MG_MakeGridpack_${PROCESSNAME}.log
     else
 	./MG_MakeGridpack_${PROCESSNAME}.sh
-    fi
-
+    fi    
 fi
 

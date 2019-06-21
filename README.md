@@ -11,17 +11,13 @@
   - See existing cards for example.
   
 ## 2. `bin/MakeGridpack.sh CARDPATH [NCORE]`
-  - Make Gridpack using card
+  - Make Gridpack using card, place geneneration python fragment at CMSSW directory, and compile
   - For MG gridpack generation, you should start with clean shell and `source setup.sh nocmsenv`
-  
-## 3. `bin/PrepareGridpack.sh [all|GridpackDIR]`
-  - Place geneneration python fragment at CMSSW directory and compile
   - WIP for MG
 
-## 4. `bin/GenerateEvent.sh PROCESSNAME NEVENT [NCORE]`
+## 3. `bin/GenerateEvent.sh Sherpa|MG PROCESSNAME NEVENT [NCORE]`
   - Generating events using gridpack.
-  - WIP for MG
 
-## 5. `bin/MakeHists.sh EVENT_DIR`
+## 4. `bin/MakeHists.sh EVENT_DIR`
   - Drawing histograms using a script.
   - WIP
