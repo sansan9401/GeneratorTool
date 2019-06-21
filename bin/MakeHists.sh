@@ -1,29 +1,54 @@
 #!/bin/bash
 
-if [ -z "$1" ]
+if [ -z "$1" -o -z "$2" ]
 then
-    echo "usage: $0 EVENT_DIR"
-    echo "example: $0 Sherpa/Event/ttH"
+    echo "usage: $0 <ROOTSCRIPT> <EVENT_DIR>"
+    echo "example: $0 script/ttV.cc Sherpa/Event/ttH"
+    exit 1
 fi
-EVENT_DIR=$1
+ROOTSCRIPT=$(realpath $1)
+EVENT_DIR=$(realpath $2)
+PROCESSNAME=$(basename $EVENT_DIR)
 
 echo cmssw_base: $CMSSW_BASE
 echo cmssw_version: $CMSSW_VERSION|grep 10_6_0 || { echo "it is not 10_6_0... Exiting...";exit 1; }
 
-files=($(find $dir -maxdepth 2 -name "*.root"|egrep "run|job"))
-echo ${files[@]}
-for file in "${files[@]}"
+FILES=($(find $EVENT_DIR -maxdepth 2 -name "*GEN*.root"))
+WAITLIST=()
+echo ${FILES[@]}
+for FILE in "${FILES[@]}"
 do
-    i=$(dirname $file|xargs -i basename {}|grep -o "[0-9]*")
-    echo 'echo -e ".L script.cc\n loop(\"'$file'\",\"'$dir'/out'$i'.root\");\n .q"|root -b'|condor_qsub -V -cwd
+    cd $GENERATORTOOL_BASE
+    REALPATH=$(realpath $FILE)
+    DIRNAME=$(dirname $REALPATH)
+    BASENAME=$(basename $REALPATH)
+
+    cd $DIRNAME
+    SCRIPT=MakeHists_${PROCESSNAME}
+    echo "#!/bin/bash" >$SCRIPT
+    echo 'echo -e ".L '$ROOTSCRIPT'\n loop(\"'$REALPATH'\",\"'$DIRNAME'/hists.root\");\n .q"|root -l -b' >>$SCRIPT
+    chmod +x $SCRIPT
+    
+    if [[ $GENERATORTOOL_USECONDOR ]]
+    then
+	condor_submit -batch-name $SCRIPT <<EOF
+executable = $SCRIPT
+output = $SCRIPT.out
+error = $SCRIPT.err
+log = $SCRIPT.log
+getenv = true
+queue
+EOF
+	WAITLIST+=($DIRNAME/$SCRIPT.log)
+    fi
 done
 
-while [ $(ls -1 $dir/out*.root|wc -l) -ne ${#files[@]} ]
+for WAITTARGET in "${WAITLIST[@]}"
 do 
-    sleep 20
+    if [[ $GENERATORTOOL_USECONDOR ]]
+    then
+	condor_wait $WAITTARGET
+    fi
 done
-sleep 10
-hadd -f $dir/hists.root $dir/out*.root
-rm $dir/out*.root
-rm STDIN.*
-rm STDIN_qsub*
+
+hadd -f $EVENT_DIR/hists.root $EVENT_DIR/run*/hists.root
