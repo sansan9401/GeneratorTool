@@ -38,14 +38,14 @@ then
     echo "time $SHERPA_DATA_DIR/MakeSherpaLibs.sh -v -o LBCR -p $PROCESSNAME -m mpirun -M '-n $NCORE'" >> Sherpa_MakeGridpack_${PROCESSNAME}.sh
     chmod +x Sherpa_MakeGridpack_${PROCESSNAME}.sh
   
-    if [[ $SHERPADAY_USECONDOR ]]
+    if [[ $GENERATORTOOL_USECONDOR ]]
     then
 	condor_qsub -cwd -V -l nodes=1:ppn=$NCORE Sherpa_MakeGridpack_${PROCESSNAME}.sh
     else 
 	./Sherpa_MakeGridpack_${PROCESSNAME}.sh
     fi
     
-    ln -sf $WORKING_DIR $SHERPADAY_BASE/Sherpa/Gridpack/$PROCESSNAME    
+    ln -sf $WORKING_DIR $GENERATORTOOL_BASE/Sherpa/Gridpack/$PROCESSNAME    
 else
     #### Madgraph Gridpack Generation #####
     echo "This is MG card"
@@ -54,14 +54,14 @@ else
 
     [[ $CMSSW_BASE ]] && { echo "Use new shell with 'setup.sh nocmsenv' for MG gridpack generation... Exiting...";exit 1; }
 
-    MG_DIR=$SHERPADAY_BASE/Tool/genproductions/bin/MadGraph5_aMCatNLO
-    ln -sf $SHERPADAY_BASE/MG/Card $MG_DIR/Card
+    MG_DIR=$GENERATORTOOL_BASE/Tool/genproductions/bin/MadGraph5_aMCatNLO
+    ln -sf $GENERATORTOOL_BASE/MG/Card $MG_DIR/Card
     cd $MG_DIR
     echo "#!/bin/bash" > MG_MakeGridpack_${PROCESSNAME}.sh
     echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >> MG_MakeGridpack_${PROCESSNAME}.sh
     chmod +x MG_MakeGridpack_${PROCESSNAME}.sh
 
-    if [[ $SHERPADAY_USECONDOR ]]
+    if [[ $GENERATORTOOL_USECONDOR ]]
     then
 	condor_qsub -cwd -V -l nodes=1:ppn=$NCORE MG_MakeGridpack_${PROCESSNAME}.sh
     else

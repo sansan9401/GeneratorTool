@@ -19,13 +19,13 @@ echo $NCORE|grep -q ^[0-9] && { echo "NCORE=$NCORE is not integer... Exiting..."
 for i in $(seq 1 $NCORE)
 do
     SEED=$RANDOM$(date +%S)
-    WORKING_DIR=$SHERPADAY_BASE/Sherpa/Event/$PROCESSNAME/run$SEED
+    WORKING_DIR=$GENERATORTOOL_BASE/Sherpa/Event/$PROCESSNAME/run$SEED
     mkdir -p $WORKING_DIR
     cd $WORKING_DIR
     echo "#!/bin/bash" > run${SEED}.sh
     echo "time cmsDriver.py MY/sherpa/python/sherpa_${PROCESSNAME}_MASTER_cff.py -s GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands process.RandomNumberGeneratorService.generator.initialSeed=$SEED" >> run${SEED}.sh
     chmod +x run${SEED}.sh
-    if [[ $SHERPADAY_USECONDOR ]]
+    if [[ $GENERATORTOOL_USECONDOR ]]
     then
 	condor_submit -batch-name Sherpa_GenerateEvent_$PROCESSNAME <<EOF
 executable = run${SEED}.sh

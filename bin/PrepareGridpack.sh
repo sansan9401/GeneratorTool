@@ -4,7 +4,7 @@ echo cmssw_base: $CMSSW_BASE
 echo cmssw_version: $CMSSW_VERSION|grep 10_6_0 || { echo "it is not 10_6_0... Exiting...";exit 1; }
 
 SHERPA_DATA_DIR=$CMSSW_BASE/src/GeneratorInterface/SherpaInterface/data
-GRIDPACK_DIR=$SHERPADAY_BASE/Sherpa/Gridpack
+GRIDPACK_DIR=$GENERATORTOOL_BASE/Sherpa/Gridpack
 SHERPA_PYHTON_DIR=$CMSSW_BASE/src/MY/sherpa/python
 mkdir -p $SHERPA_PYHTON_DIR
 ls -1 $GRIDPACK_DIR|while read PROCESSNAME
