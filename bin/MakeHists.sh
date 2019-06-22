@@ -40,6 +40,9 @@ getenv = true
 queue
 EOF
 	WAITLIST+=($DIRNAME/$SCRIPT.log)
+    else 
+	./$SCRIPT 1>$SCRIPT.out 2>$SCRIPT.err &
+	WAITLIST+=($!)
     fi
 done
 
@@ -48,6 +51,8 @@ do
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
 	condor_wait $WAITTARGET
+    else
+	wait ${WAITLIST[@]}
     fi
 done
 
