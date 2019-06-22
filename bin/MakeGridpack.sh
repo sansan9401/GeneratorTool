@@ -73,21 +73,50 @@ else
     echo "This is MG card"
     PROCESSNAME=$(basename $CARDPATH)
     echo "PROCESSNAME=$PROCESSNAME"
+    NJETMAX=0
+    grep " j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=1
+    grep " j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=2
+    grep " j j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=3
+    grep " j j j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=4
+    echo "NJETMAX=$NJETMAX"
 
     [[ $CMSSW_BASE ]] && { echo "Use new shell with 'setup.sh nocmsenv' for MG gridpack generation... Exiting...";exit 1; }
 
+    MG_PYTHON_DIR=$GENERATORTOOLS_BASE/external/CMSSW_10_6_0/src/MY/mg/python
+    mkdir -p $MG_PYTHON_DIR
     GRIDPATH=$GENERATORTOOLS_BASE/MG/Gridpack/$PROCESSNAME
     mkdir -p $GRIDPATH
     cd $GRIDPATH
 
-    MG_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
-    ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_DIR/Card
+    MG_RUN_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
+    ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_RUN_DIR/Card
 
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
-    echo "cd $MG_DIR" >>$SCRIPT
+    echo "cd $MG_RUN_DIR" >>$SCRIPT
     echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >>$SCRIPT
     echo "mv ${PROCESSNAME} ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
+    echo "cd $GRIDPATH" >>$SCRIPT
+    if grep "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
+    then
+	if [ $NJETMAX -gt 0 ]
+	then
+	    echo "cp $GENERATORTOOLS_BASE/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	else
+	    echo "cp $GENERATORTOOLS_BASE/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	fi	    
+    else 
+	if [ $NJETMAX -gt 0 ]
+	then 
+	    echo "cp $GENERATORTOOLS_BASE/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	else
+	    echo "cp $GENERATORTOOLS_BASE/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	fi
+    fi	
+    echo "sed -i 's@GRIDPACKLOCATION@'\$(find $GRIDPATH -type f -name \"${PROCESSNAME}_*_tarball.tar.xz\")'@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+    echo "sed -i 's@NJETMAX@$NJETMAX@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+    echo "ln -sf $MG_PYTHON_DIR/${PROCESSNAME}.py $GRIDPATH/" >>$SCRIPT
+    echo "cd $MG_PYTHON_DIR; cmsenv; scram b" >>$SCRIPT
     chmod +x $SCRIPT
 
     if [[ $GENERATORTOOLS_USECONDOR ]]
