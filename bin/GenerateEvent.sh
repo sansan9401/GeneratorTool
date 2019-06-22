@@ -42,6 +42,8 @@ transfer_output_files = sherpa_ttH_MASTER_cff_py_GEN.root,sherpa_ttH_MASTER_cff_
 getenv = true
 queue
 EOF
+	else
+	    ./run${SEED}.sh 1>run${SEED}.out 2>run${SEED}.err &
 	fi
     done
 elif [[ "$GENERATOR" == "MG" ]]
@@ -70,6 +72,8 @@ transfer_output_files = ${PROCESSNAME}_py_LHE_GEN.py,${PROCESSNAME}_py_LHE_GEN.r
 getenv = true
 queue
 EOF
+	else
+	    ./run${SEED}.sh 1>run${SEED}.out 2>run${SEED}.err &
 	fi
     done
 else
