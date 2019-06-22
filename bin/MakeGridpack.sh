@@ -34,7 +34,7 @@ then
     mkdir -p $SHERPA_PYTHON_DIR
     WORKING_DIR=$(mktemp -d -t ${PROCESSNAME}_XXXXXXXX --tmpdir=$SHERPA_DATA_DIR)
     cp $CARDPATH $WORKING_DIR
-    GRIDPATH=$GENERATORTOOL_BASE/Sherpa/Gridpack/$PROCESSNAME
+    GRIDPATH=$GENERATORTOOLS_BASE/Sherpa/Gridpack/$PROCESSNAME
     cd $WORKING_DIR
 
     SCRIPT=Sherpa_MakeGridpack_${PROCESSNAME}.sh
@@ -53,7 +53,7 @@ then
 
     chmod +x $SCRIPT
   
-    if [[ $GENERATORTOOL_USECONDOR ]]
+    if [[ $GENERATORTOOLS_USECONDOR ]]
     then
 	condor_submit -batch-name Sherap_MakeGridpack_$PROCESSNAME <<EOF
 executable = Sherpa_MakeGridpack_${PROCESSNAME}.sh
@@ -76,12 +76,12 @@ else
 
     [[ $CMSSW_BASE ]] && { echo "Use new shell with 'setup.sh nocmsenv' for MG gridpack generation... Exiting...";exit 1; }
 
-    GRIDPATH=$GENERATORTOOL_BASE/MG/Gridpack/$PROCESSNAME
+    GRIDPATH=$GENERATORTOOLS_BASE/MG/Gridpack/$PROCESSNAME
     mkdir -p $GRIDPATH
     cd $GRIDPATH
 
-    MG_DIR=$GENERATORTOOL_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
-    ln -sf $GENERATORTOOL_BASE/MG/Card $MG_DIR/Card
+    MG_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
+    ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_DIR/Card
 
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
@@ -90,7 +90,7 @@ else
     echo "mv ${PROCESSNAME} ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
     chmod +x $SCRIPT
 
-    if [[ $GENERATORTOOL_USECONDOR ]]
+    if [[ $GENERATORTOOLS_USECONDOR ]]
     then
 	condor_submit -batch-name MG_MakeGridpack_$PROCESSNAME <<EOF
 executable = MG_MakeGridpack_${PROCESSNAME}.sh

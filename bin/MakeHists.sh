@@ -18,7 +18,7 @@ WAITLIST=()
 echo ${FILES[@]}
 for FILE in "${FILES[@]}"
 do
-    cd $GENERATORTOOL_BASE
+    cd $GENERATORTOOLS_BASE
     REALPATH=$(realpath $FILE)
     DIRNAME=$(dirname $REALPATH)
     BASENAME=$(basename $REALPATH)
@@ -29,7 +29,7 @@ do
     echo 'echo -e ".L '$ROOTSCRIPT'\n loop(\"'$REALPATH'\",\"'$DIRNAME'/hists.root\");\n .q"|root -l -b' >>$SCRIPT
     chmod +x $SCRIPT
     
-    if [[ $GENERATORTOOL_USECONDOR ]]
+    if [[ $GENERATORTOOLS_USECONDOR ]]
     then
 	condor_submit -batch-name $SCRIPT <<EOF
 executable = $SCRIPT
@@ -45,7 +45,7 @@ done
 
 for WAITTARGET in "${WAITLIST[@]}"
 do 
-    if [[ $GENERATORTOOL_USECONDOR ]]
+    if [[ $GENERATORTOOLS_USECONDOR ]]
     then
 	condor_wait $WAITTARGET
     fi
