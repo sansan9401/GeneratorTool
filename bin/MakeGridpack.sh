@@ -101,22 +101,22 @@ else
     then
 	if [ $NJETMAX -gt 0 ]
 	then
-	    echo "cp $GENERATORTOOLS_BASE/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
 	else
-	    echo "cp $GENERATORTOOLS_BASE/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
 	fi	    
     else 
 	if [ $NJETMAX -gt 0 ]
 	then 
-	    echo "cp $GENERATORTOOLS_BASE/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
 	else
-	    echo "cp $GENERATORTOOLS_BASE/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
 	fi
     fi	
     echo "sed -i 's@GRIDPACKLOCATION@'\$(find $GRIDPATH -type f -name \"${PROCESSNAME}_*_tarball.tar.xz\")'@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
     echo "sed -i 's@NJETMAX@$NJETMAX@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
     echo "ln -sf $MG_PYTHON_DIR/${PROCESSNAME}.py $GRIDPATH/" >>$SCRIPT
-    echo "cd $MG_PYTHON_DIR; cmsenv; scram b" >>$SCRIPT
+    echo "cd $MG_PYTHON_DIR; eval \`scramv1 runtime -sh\`; scram b" >>$SCRIPT
     chmod +x $SCRIPT
 
     if [[ $GENERATORTOOLS_USECONDOR ]]
