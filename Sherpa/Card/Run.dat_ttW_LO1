@@ -1,6 +1,6 @@
 (run){
-    BEAM_1=2212
-    BEAM_2=2212
+    BEAM_1 2212; BEAM_ENERGY_1 6500.;
+    BEAM_2 2212; BEAM_ENERGY_2 6500.;    
     MAX_PROPER_LIFETIME=10.0
     HEPMC_TREE_LIKE=1
     PRETTY_PRINT=Off
@@ -56,10 +56,10 @@
     PDF_SET=NNPDF30_nnlo_as_0118
     PDF_VARIATIONS=NNPDF30_nnlo_as_0118[all] NNPDF30_nnlo_as_0117 NNPDF30_nnlo_as_0119
     
+
     HARD_DECAYS=1;
     STABLE[6] = 0; WIDTH[6]=0.0;
-    STABLE[23] = 0; WIDTH[23]=0.0;
-    STABLE[24] = 0;
+    STABLE[23] = 0; STABLE[24] = 0;
     ACTIVE[25] = 0;
     
     CORE_SCALE VAR{H_TM2/4}
@@ -67,22 +67,19 @@
     
     # merging setup
     QCUT:=30.;
-    LJET:=3,4; NJET:=2;
+    LJET:=; NJET:=1; 
     
     ME_SIGNAL_GENERATOR Comix Amegic OpenLoops;
     INTEGRATION_ERROR=0.05;
     
-    #Disable leptonic decays
-    HDH_STATUS[23,11,-11]=0
-    HDH_STATUS[23,13,-13]=0
-    HDH_STATUS[23,15,-15]=0
+    # top/W decays
+    HARD_DECAYS On; HARD_SPIN_CORRELATIONS 1;
+    STABLE[24] 0; WIDTH[24] 0; STABLE[6] 0; WIDTH[6] 0;
 
-    BEAM_1 2212; BEAM_ENERGY_1 6500.;
-    BEAM_2 2212; BEAM_ENERGY_2 6500.;
 }(run)
 
 (processes){
-    Process 93 93 -> 6 -6 23 93{NJET};
+    Process 93 93 -> 6 -6 24 93{NJET};
     Order (*,1);
     CKKW sqr(QCUT/E_CMS);
     NLO_QCD_Mode MC@NLO {LJET}; 
@@ -91,4 +88,15 @@
     Loop_Generator OpenLoops {LJET};
     Associated_Contributions EW|LO1|LO2|LO3 {LJET};
     End process;
+    
+    Process 93 93 -> 6 -6 -24 93{NJET};
+    Order (*,1);
+    CKKW sqr(QCUT/E_CMS);
+    NLO_QCD_Mode MC@NLO {LJET}; 
+    ME_Generator Amegic {LJET};
+    RS_ME_Generator Comix {LJET};
+    Loop_Generator OpenLoops {LJET};
+    Associated_Contributions EW|LO1|LO2|LO3 {LJET};
+    End process;
+
 }(processes)

@@ -8,6 +8,8 @@
     PP_HPSMODE=0"
     HEPMC_USE_NAMED_WEIGHTS=1
     SCALE_VARIATIONS=0.25,0.25 0.25,1. 1.,0.25 1.,1. 1.,4. 4.,1. 4.,4.
+    ASSOCIATED_CONTRIBUTIONS_VARIATIONS EW EW|LO1 EW|LO1|LO2 EW|LO1|LO2|LO3;
+
     MASS[6]=172.5
     WIDTH[6]=1.32
     MASS[15]=1.777
@@ -83,7 +85,8 @@
     NLO_QCD_Mode MC@NLO {LJET}; 
     ME_Generator Amegic {LJET};
     RS_ME_Generator Comix {LJET};
-    Loop_Generator OpenLoops;
+    Loop_Generator OpenLoops {LJET};
+    Associated_Contributions EW|LO1|LO2|LO3 {LJET};
     End process;
     
     Process 93 93 -> 6 -6 -24 93{NJET};
@@ -92,7 +95,8 @@
     NLO_QCD_Mode MC@NLO {LJET}; 
     ME_Generator Amegic {LJET};
     RS_ME_Generator Comix {LJET};
-    Loop_Generator OpenLoops;
+    Loop_Generator OpenLoops {LJET};
+    Associated_Contributions EW|LO1|LO2|LO3 {LJET};
     End process;
 
 }(processes)

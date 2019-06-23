@@ -9,7 +9,7 @@
   METS_BBAR_MODE 5;
 
   % tags for process setup
-  NJET:=2; LJET:=3,4; QCUT:=30.;
+  NJET:=2; LJET:=; QCUT:=30.;
 
   % me generator settings
   ME_SIGNAL_GENERATOR Comix Amegic LOOPGEN;
