@@ -38,7 +38,7 @@ error = run${SEED}.err
 log = run${SEED}.log
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_output_files = sherpa_ttH_MASTER_cff_py_GEN.root,sherpa_ttH_MASTER_cff_py_GEN.py
+transfer_output_files = sherpa_${PROCESSNAME}_MASTER_cff_py_GEN.root,sherpa_${PROCESSNAME}_MASTER_cff_py_GEN.py
 getenv = true
 accounting_group = group_cms
 queue
