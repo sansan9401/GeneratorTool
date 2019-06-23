@@ -62,6 +62,7 @@ error = Sherpa_MakeGridpack_${PROCESSNAME}.err
 log = Sherpa_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
 getenv = true
+accounting_group = group_cms
 queue
 EOF
 	condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
@@ -128,6 +129,7 @@ error = MG_MakeGridpack_${PROCESSNAME}.err
 log = MG_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
 getenv = true
+accounting_group = group_cms
 queue
 EOF
 	condor_wait MG_MakeGridpack_${PROCESSNAME}.log
