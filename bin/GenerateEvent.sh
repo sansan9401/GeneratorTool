@@ -40,6 +40,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_output_files = sherpa_ttH_MASTER_cff_py_GEN.root,sherpa_ttH_MASTER_cff_py_GEN.py
 getenv = true
+accounting_group = group_cms
 queue
 EOF
 	else
@@ -70,6 +71,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_output_files = ${PROCESSNAME}_py_LHE_GEN.py,${PROCESSNAME}_py_LHE_GEN.root
 getenv = true
+accounting_group = group_cms
 queue
 EOF
 	else
