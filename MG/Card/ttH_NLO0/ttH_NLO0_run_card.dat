@@ -55,7 +55,7 @@ average = event_norm ! Normalize events to sum or average to the X sect.
 # PDF choice: this automatically fixes also alpha_s(MZ) and its evol.  *
 #***********************************************************************
  lhapdf    = pdlabel   ! PDF set                                     
-262000 = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number
+ 262000    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number
 #***********************************************************************
 # Include the NLO Monte Carlo subtr. terms for the following parton    *
 # shower (HERWIG6 | HERWIGPP | PYTHIA6Q | PYTHIA6PT | PYTHIA8)         *
@@ -92,15 +92,14 @@ average = event_norm ! Normalize events to sum or average to the X sect.
   2.0     = rw_Rscale_up     ! upper bound for ren scale variations
   0.5     = rw_Fscale_down   ! lower bound for fact scale variations
   2.0     = rw_Fscale_up     ! upper bound for fact scale variations
-True = reweight_PDF     ! reweight to get PDF uncertainty
-      ! First of the error PDF sets 
-      ! Last of the error PDF sets
+  True = reweight_PDF     ! reweight to get PDF uncertainty
+  True = store_rwgt_info
 #***********************************************************************
 # Merging - WARNING! Applies merging only at the hard-event level.     *
 # After showering an MLM-type merging should be applied as well.       *
 # See http://amcatnlo.cern.ch/FxFx_merging.htm for more details.       *
 #***********************************************************************
- 3        = ickkw            ! 0 no merging, 3 FxFx merging
+ 0        = ickkw            ! 0 no merging, 3 FxFx merging
 #***********************************************************************
 #
 #***********************************************************************

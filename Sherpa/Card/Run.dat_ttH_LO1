@@ -31,7 +31,7 @@
   PDF_LIBRARY LHAPDFSherpa;
   PDF_SET NNPDF30_nlo_as_0118;
   USE_PDF_ALPHAS=1;
-  PDF_VARIATIONS NNPDF30_nlo_as_0118[all];
+  PDF_VARIATIONS=NNPDF30_nnlo_as_0118[all] NNPDF30_nnlo_as_0117 NNPDF30_nnlo_as_0119
 
   % various settings given via command line
   BEAM_1=2212;

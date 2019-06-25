@@ -55,7 +55,7 @@ then
   
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
-	condor_submit -batch-name Sherap_MakeGridpack_$PROCESSNAME <<EOF
+	condor_submit -batch-name Sherpa_MakeGridpack_$PROCESSNAME <<EOF
 executable = Sherpa_MakeGridpack_${PROCESSNAME}.sh
 output = Sherpa_MakeGridpack_${PROCESSNAME}.out
 error = Sherpa_MakeGridpack_${PROCESSNAME}.err
@@ -90,7 +90,7 @@ else
     cd $GRIDPATH
 
     MG_RUN_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
-    ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_RUN_DIR/Card
+    ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_RUN_DIR/
 
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
