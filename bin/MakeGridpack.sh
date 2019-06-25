@@ -96,7 +96,8 @@ else
     echo "#!/bin/bash" > $SCRIPT
     echo "cd $MG_RUN_DIR" >>$SCRIPT
     echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >>$SCRIPT
-    echo "mv ${PROCESSNAME} ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
+    echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
+    echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
     if grep "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
     then

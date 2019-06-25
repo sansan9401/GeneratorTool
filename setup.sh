@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export LANG=C
 export GENERATORTOOLS_BASE=`pwd`
 if condor_status 2>/dev/null
 then
