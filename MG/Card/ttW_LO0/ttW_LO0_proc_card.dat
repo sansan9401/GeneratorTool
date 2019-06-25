@@ -1,7 +1,7 @@
-import model sm-ckm_no_b_mass
+import model sm-no_b_mass
 
 define w = w+ w-
 
-generate p p > t t~ w @0
+generate p p > t t~ w / h @0
 
 output ttW_LO0 -nojpeg
