@@ -27,7 +27,7 @@ then
 	mkdir -p $WORKING_DIR
 	cd $WORKING_DIR
 	echo "#!/bin/bash" > run${SEED}.sh
-	echo "cd $WORKING_DIR" >run${SEED}.sh
+	echo "cd $WORKING_DIR" >>run${SEED}.sh
 	echo "time cmsDriver.py MY/sherpa/python/sherpa_${PROCESSNAME}_MASTER_cff.py -s GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands process.RandomNumberGeneratorService.generator.initialSeed=$SEED" >> run${SEED}.sh
 	chmod +x run${SEED}.sh
 	if [[ $GENERATORTOOLS_USECONDOR ]]
@@ -60,7 +60,7 @@ then
 	mkdir -p $WORKING_DIR
 	cd $WORKING_DIR
 	echo "#!/bin/bash" > run${SEED}.sh	
-	echo "cd $WORKING_DIR" >run${SEED}.sh
+	echo "cd $WORKING_DIR" >>run${SEED}.sh
 	echo "time cmsDriver.py MY/mg/python/${PROCESSNAME}.py -s LHE,GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands \"process.RandomNumberGeneratorService.externalLHEProducer.initialSeed=$SEED\nprocess.RandomNumberGeneratorService.generator.initialSeed=$SEED\"" >> run${SEED}.sh
 	chmod +x run${SEED}.sh
 	if [[ $GENERATORTOOLS_USECONDOR ]]
