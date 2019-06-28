@@ -7,6 +7,59 @@ vector<TString> Split(TString s,TString del){
   array->Delete();
   return out;
 }
+tuple<double,double> GetEventGenerationSpeedAndError(TString eventdir){
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -name 'run*' -type d|xargs -i find {} -type f -name 'run*.err'|while read filename;do TIME=$(grep '^real' $filename|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
+  double sumwx=0,sumw=0,sumwx2=0;
+  for(const auto& line:lines){
+    vector<TString> words=Split(line," ");
+    if(words.size()!=2){
+      cout<<"Somethign wrong at "<<line<<endl;
+      continue;
+    }
+    double time=words[0].Atof();
+    double nevent=words[1].Atof();
+    if(time==0&&nevent==0){
+      cout<<"Unfinished job at "<<line<<endl;
+      continue;
+    }
+    double x=nevent/time*3600*24;
+    double w=nevent;
+    sumwx+=x*w;
+    sumwx2+=x*x*w;
+    sumw+=w;
+  }
+  if(sumw>0) return make_tuple(sumwx/sumw,sqrt(sumwx2/sumw-sumwx*sumwx/sumw/sumw));
+  else return make_tuple(-1,-1);
+}  
+double GetEventGenerationSpeed(TString eventdir){
+  return get<0>(GetEventGenerationSpeedAndError(eventdir));
+}
+double GetEventGenerationSpeedError(TString eventdir){
+  return get<1>(GetEventGenerationSpeedAndError(eventdir));
+}
+tuple<double,double> GetCrossSectionAndStatError(TString eventdir){  
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -name 'run*' -type d|xargs -i find {} -type f -name 'run*.err'|xargs -i sh -c \"grep 'final cross section' {} || echo {} \""),"\n");
+  double sumwx=0,sumw=0;
+  for(const auto& line:lines){
+    vector<TString> words=Split(line," ");
+    if(words.size()!=10){
+      cout<<"Unfinished job at "<<line<<endl;
+      continue;
+    }
+    double x=words[6].Atof();
+    double err=words[8].Atof();
+    sumwx+=x/err/err;
+    sumw+=1/err/err;
+  }
+  if(sumw>0) return make_tuple(sumwx/sumw,sqrt(1/sumw));
+  else return make_tuple(-1,-1);
+}
+double GetCrossSection(TString eventdir){
+  return get<0>(GetCrossSectionAndStatError(eventdir));
+}
+double GetCrossSectionStatError(TString eventdir){
+  return get<1>(GetCrossSectionAndStatError(eventdir));
+}
 void summary_cross_section(){
   TH1::SetDefaultSumw2();
   TH1D* sherpa_cross_section=new TH1D("sherpa_cross_section","Sherpa",24,0,24);

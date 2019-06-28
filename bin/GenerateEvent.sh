@@ -27,6 +27,7 @@ then
 	mkdir -p $WORKING_DIR
 	cd $WORKING_DIR
 	echo "#!/bin/bash" > run${SEED}.sh
+	echo "cd $WORKING_DIR" >run${SEED}.sh
 	echo "time cmsDriver.py MY/sherpa/python/sherpa_${PROCESSNAME}_MASTER_cff.py -s GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands process.RandomNumberGeneratorService.generator.initialSeed=$SEED" >> run${SEED}.sh
 	chmod +x run${SEED}.sh
 	if [[ $GENERATORTOOLS_USECONDOR ]]
@@ -40,6 +41,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_output_files = sherpa_${PROCESSNAME}_MASTER_cff_py_GEN.root,sherpa_${PROCESSNAME}_MASTER_cff_py_GEN.py
 getenv = true
+request_memory = 5G
 accounting_group = group_cms
 queue
 EOF
@@ -57,7 +59,8 @@ then
 	WORKING_DIR=$GENERATORTOOLS_BASE/MG/Event/$PROCESSNAME/run$SEED
 	mkdir -p $WORKING_DIR
 	cd $WORKING_DIR
-	echo "#!/bin/bash" > run${SEED}.sh
+	echo "#!/bin/bash" > run${SEED}.sh	
+	echo "cd $WORKING_DIR" >run${SEED}.sh
 	echo "time cmsDriver.py MY/mg/python/${PROCESSNAME}.py -s LHE,GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands \"process.RandomNumberGeneratorService.externalLHEProducer.initialSeed=$SEED\nprocess.RandomNumberGeneratorService.generator.initialSeed=$SEED\"" >> run${SEED}.sh
 	chmod +x run${SEED}.sh
 	if [[ $GENERATORTOOLS_USECONDOR ]]
@@ -71,6 +74,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_output_files = ${PROCESSNAME}_py_LHE_GEN.py,${PROCESSNAME}_py_LHE_GEN.root
 getenv = true
+request_memory = 5G
 accounting_group = group_cms
 queue
 EOF

@@ -176,6 +176,16 @@ void loop(TString infile,TString outfile){
   hists_base["t_pt"]=new TH1D("t_pt","t_pt",500,0,2000);
   hists_base["t_eta"]=new TH1D("t_eta","t_eta",20,-5,5);
 
+  hists_base["gen_W_m"]=new TH1D("gen_W_m","gen_W_m",60,50,110);
+  hists_base["gen_W_pt"]=new TH1D("gen_W_pt","gen_W_pt",60,0,300);
+  hists_base["gen_W_eta"]=new TH1D("gen_W_eta","gen_W_eta",20,-5,5);
+  hists_base["gen_V_m"]=new TH1D("gen_V_m","gen_V_m",60,50,110);
+  hists_base["gen_V_pt"]=new TH1D("gen_V_pt","gen_V_pt",60,0,300);
+  hists_base["gen_V_eta"]=new TH1D("gen_V_eta","gen_V_eta",20,-5,5);
+  hists_base["gen_t_m"]=new TH1D("gen_t_m","gen_t_m",75,100,250); 
+  hists_base["gen_t_pt"]=new TH1D("gen_t_pt","gen_t_pt",500,0,2000);
+  hists_base["gen_t_eta"]=new TH1D("gen_t_eta","gen_t_eta",20,-5,5);
+
   hists_base["hard_W_m"]=new TH1D("hard_W_m","hard_W_m",60,50,110);
   hists_base["hard_W_pt"]=new TH1D("hard_W_pt","hard_W_pt",60,0,300);
   hists_base["hard_W_eta"]=new TH1D("hard_W_eta","hard_W_eta",20,-5,5);
@@ -248,7 +258,7 @@ void loop(TString infile,TString outfile){
       hists["njet"+suf]->Fill(jets_ptcut.size(),weights[i]);
       double HT=0;
       for(int i=0;i<jets_ptcut.size()&&i<8;i++){
-	reco::GenJet* jet=jets[i];
+	reco::GenJet* jet=jets_ptcut[i];
 	HT+=jet->pt();
 	hists["jet_pt"+suf]->Fill(jet->pt(),weights[i]);
 	hists["jet_eta"+suf]->Fill(jet->eta(),weights[i]);
