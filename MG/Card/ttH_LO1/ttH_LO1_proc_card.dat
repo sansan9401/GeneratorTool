@@ -1,0 +1,7 @@
+import model sm-no_b_mass
+
+generate p p > t t~ h @0
+generate p p > t t~ h j @1
+
+output ttH_LO1 -nojpeg
+

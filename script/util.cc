@@ -7,8 +7,10 @@ vector<TString> Split(TString s,TString del){
   array->Delete();
   return out;
 }
+
+////////////////////////event eneration speed/////////////////////////////////
 tuple<double,double> GetEventGenerationSpeedAndError(TString eventdir){
-  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -name 'run*' -type d|xargs -i find {} -type f -name 'run*.err'|while read filename;do TIME=$(grep '^real' $filename|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do TIME=$(tail -n 500 $filename|grep '^real'|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
   double sumwx=0,sumw=0,sumwx2=0;
   for(const auto& line:lines){
     vector<TString> words=Split(line," ");
@@ -37,8 +39,11 @@ double GetEventGenerationSpeed(TString eventdir){
 double GetEventGenerationSpeedError(TString eventdir){
   return get<1>(GetEventGenerationSpeedAndError(eventdir));
 }
+
+
+////////////////////////cross section/////////////////////////////////
 tuple<double,double> GetCrossSectionAndStatError(TString eventdir){  
-  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -name 'run*' -type d|xargs -i find {} -type f -name 'run*.err'|xargs -i sh -c \"grep 'final cross section' {} || echo {} \""),"\n");
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|xargs -i sh -c \"tail -n 500 {}|grep 'final cross section' || echo {} \""),"\n");
   double sumwx=0,sumw=0;
   for(const auto& line:lines){
     vector<TString> words=Split(line," ");
@@ -48,10 +53,13 @@ tuple<double,double> GetCrossSectionAndStatError(TString eventdir){
     }
     double x=words[6].Atof();
     double err=words[8].Atof();
-    sumwx+=x/err/err;
-    sumw+=1/err/err;
+    if(err>0){
+      sumwx+=x/err/err;
+      sumw+=1/err/err;
+    }
   }
   if(sumw>0) return make_tuple(sumwx/sumw,sqrt(1/sumw));
+  else if(sumw==0) return make_tuple(0,0);
   else return make_tuple(-1,-1);
 }
 double GetCrossSection(TString eventdir){
@@ -60,6 +68,57 @@ double GetCrossSection(TString eventdir){
 double GetCrossSectionStatError(TString eventdir){
   return get<1>(GetCrossSectionAndStatError(eventdir));
 }
+double GetCrossSectionSysError(TString eventdir){
+  if(gSystem->Exec("ls "+eventdir+"|grep hists.root > /dev/null")!=0) return 0;
+
+  TFile f(eventdir+"/hists.root");
+  TH1* hist=(TH1*)f.Get("sumw");
+  if(!hist) return 0;
+
+  double maxdiff=0;
+  double norm=hist->GetBinContent(1);
+  for(int i=5;i<12;i++){
+    double diff=fabs(hist->GetBinContent(i)-norm);
+    if(diff==norm) continue;
+    if(diff>maxdiff){
+      maxdiff=diff;
+    }
+  }
+  return maxdiff/norm*GetCrossSection(eventdir);
+}
+
+////////////////////////negative weight fraction/////////////////////////////////
+tuple<double,double> GetNegativeWeightAndError(TString eventdir){  
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|xargs -i sh -c \"tail -n 500 {}|grep 'final fraction of events with negative weights' || echo {} \""),"\n");
+  double sumwx=0,sumw=0;
+  for(const auto& line:lines){
+    vector<TString> words=Split(line," ");
+    if(words.size()!=13){
+      cout<<"Unfinished job at "<<line<<endl;
+      continue;
+    }
+    double x=words[10].Atof();
+    double err=words[12].Atof();
+    if(err>0){
+      sumwx+=x/err/err;
+      sumw+=1/err/err;
+    }
+  }
+  if(sumw>0) return make_tuple(sumwx/sumw,sqrt(1/sumw));
+  else if(sumw==0) return make_tuple(0,0);
+  else return make_tuple(-1,-1);
+}
+double GetNegativeWeight(TString eventdir){
+  return get<0>(GetNegativeWeightAndError(eventdir));
+}
+double GetNegativeWeightError(TString eventdir){
+  return get<1>(GetNegativeWeightAndError(eventdir));
+}
+
+
+////////////////////////
+/////////OLD/////////////
+///////////////////////
 void summary_cross_section(){
   TH1::SetDefaultSumw2();
   TH1D* sherpa_cross_section=new TH1D("sherpa_cross_section","Sherpa",24,0,24);

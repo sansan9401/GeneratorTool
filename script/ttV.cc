@@ -227,9 +227,14 @@ void loop(TString infile,TString outfile){
     const vector<double>& weights=geninfo.ptr()->weights();
     //scale:4-10 pdf:11-110 as:111-112
 
+    for(int i=0;i<weights.size();i++){
+      hists["sumw"]->Fill(i,weights[i]);
+    }
+
     reco::GenParticle *t=FindHard(gens,6), *tbar=FindHard(gens,-6), *V=FindHard(gens,24,true);
     if(V==NULL) V=FindHard(gens,23,true);
     if(V==NULL) V=FindHard(gens,25,true);
+    if(V==NULL) continue;
     t=FindLastCopy(gens,t); tbar=FindLastCopy(gens,tbar); V=FindLastCopy(gens,V);
     reco::GenParticle *W=FindDaughter(gens,t,24), *b=FindDaughter(gens,t,5), *Wbar=FindDaughter(gens,tbar,-24),*bbar=FindDaughter(gens,tbar,-5);
     W=FindLastCopy(gens,W); b=FindLastCopy(gens,b); Wbar=FindLastCopy(gens,Wbar);bbar=FindLastCopy(gens,bbar);
@@ -248,7 +253,6 @@ void loop(TString infile,TString outfile){
     if(bbarjet) bjets.push_back(*bbarjet);
 
     for(int i=0;i<weights.size();i++){
-      hists["sumw"]->Fill(i,weights[i]);
       TString suf=(i==0?"":Form("_weight%d",i));
       if(ievent==0){
 	for(const auto& hist_base:hists_base)

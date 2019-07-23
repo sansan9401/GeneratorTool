@@ -1,0 +1,8 @@
+import model sm-no_b_mass
+
+define l+ = e+ mu+ ta+
+define l- = e- mu- ta-
+
+generate p p > t t~ l+ l- / h @0
+
+output ttll_LO0 -nojpeg
