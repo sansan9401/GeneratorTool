@@ -5,7 +5,7 @@ TCanvas* GetCanvas(TString option){ //option: genspeed(S), crosssection(X), nega
   vector<TString> order={"_LO0","_LO1","_LO2","_NLO0","_NLO1",""};
   vector<TString> order_title={"0j LO","01j LO","012j LO","0j NLO","01j NLO","01j NLO + 2j LO"};
   TH1D* hist[2]={new TH1D("Sherpa","Sherpa",process.size()*order.size(),0,process.size()*order.size()),new TH1D("MG","MG",process.size()*order.size(),0,process.size()*order.size())};
-  TH1D* sys=new TH1D("#mu_{R}/#mu_{F}","#mu_{R}/#mu_{F}",process.size()*order.size(),0,process.size()*order.size());
+  TH1D* sys=new TH1D("Sherpa #mu_{R}/#mu_{F}","Sherpa #mu_{R}/#mu_{F}",process.size()*order.size(),0,process.size()*order.size());
   for(int ig=0;ig<generator.size();ig++){
     for(int ip=0;ip<process.size();ip++){
       for(int io=0;io<order.size();io++){
@@ -45,7 +45,7 @@ TCanvas* GetCanvas(TString option){ //option: genspeed(S), crosssection(X), nega
   hist[0]->SetMarkerStyle(20);
   hist[0]->SetMarkerColor(2);
 
-  TLegend* leg=new TLegend(0.72,0.35,0.88,0.48);
+  TLegend* leg=new TLegend(0.76,0.78,0.92,0.92);
   leg->AddEntry(hist[0]);
   leg->AddEntry(hist[1]);
   leg->Draw();

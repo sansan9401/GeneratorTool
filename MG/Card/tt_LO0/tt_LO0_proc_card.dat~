@@ -1,0 +1,7 @@
+import model sm-no_b_mass
+
+define w = w+ w-
+
+generate p p > t t~ w / h @0
+
+output ttW_LO0 -nojpeg

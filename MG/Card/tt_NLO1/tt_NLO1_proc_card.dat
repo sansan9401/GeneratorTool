@@ -1,0 +1,7 @@
+import model loop_sm-no_b_mass
+
+generate p p > t t~ / h [QCD] @0
+add process p p > t t~ j / h [QCD] @1
+
+output tt_NLO1 -nojpeg
+

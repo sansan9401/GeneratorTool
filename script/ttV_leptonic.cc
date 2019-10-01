@@ -13,7 +13,17 @@ TLorentzVector MakeTLorentzVector(reco::GenJet* particle){
 TLorentzVector MakeTLorentzVector(tuple<reco::GenJet*,reco::GenJet*> particles){
   return MakeTLorentzVector(get<0>(particles))+MakeTLorentzVector(get<1>(particles));
 }
-
+TLorentzVector MakeTLorentzVector(vector<reco::GenParticle*> particles){
+  TLorentzVector out;
+  for(const auto& particle:particles) out+=MakeTLorentzVector(particle);
+  return out;
+}
+int GetIndex(const vector<reco::GenParticle>& gens,reco::GenParticle* particle){
+  for(int i=0;i<gens.size();i++){
+    if(particle==(reco::GenParticle*)&gens[i]) return i;
+  }
+  return -1;
+}
 reco::GenParticle* FindHard(const vector<reco::GenParticle>& gens,int pdgid,bool absid=false){
   for(const auto& gen:gens){
     if(gen.isHardProcess())
@@ -48,6 +58,22 @@ reco::GenParticle* FindDaughter(const vector<reco::GenParticle>& gens,reco::GenP
   if(daughters.size()==1) return daughters[0];
   else cout<<"[FindDaughter] "<<daughters.size()<<" particles in daughers with "<<pdgid<<endl;
   return NULL;
+}
+bool IsRelative(const reco::GenParticle *ancestor,const reco::GenParticle *descendant){
+  while(descendant->mother()){
+    if(ancestor==(reco::GenParticle*)descendant->mother()) return true;
+    else descendant=(reco::GenParticle*)descendant->mother();
+  }
+  return false;
+}
+vector<reco::GenParticle*> FindDescendants(const vector<reco::GenParticle>& gens,reco::GenParticle *ancestor,int status,int pdgid=0){
+  vector<reco::GenParticle*> descendants;
+  for(const auto& gen:gens){
+    if(pdgid>0&&gen.pdgId()!=pdgid) continue;
+    if(status>0&&gen.status()%10!=status) continue;
+    if(IsRelative(ancestor,&gen)) descendants.push_back((reco::GenParticle*)&gen);
+  }
+  return descendants;
 }
 void RemoveJet(vector<reco::GenJet*>& jets,reco::GenJet* target){
   for(auto it=jets.begin();it!=jets.end();it++){
@@ -147,7 +173,22 @@ tuple<reco::GenJet*,reco::GenJet*> FindWJets(const vector<reco::GenJet*>& jets,r
   }    
   return final;
 }
-
+void PrintGen(const reco::GenParticle& gen){
+  cout<<&gen<<" "<<gen.pdgId()<<" "<<gen.status()<<" "<<gen.mother()<<"\t"<<gen.isHardProcess()<<gen.isLastCopy()<<gen.isLastCopyBeforeFSR()<<gen.isPromptDecayed()<<gen.isPromptFinalState()<<endl;
+}  
+void PrintGens(const vector<reco::GenParticle>& gens){
+  for(unsigned int i=0;i<gens.size();i++){
+    //if(gens[i].isHardProcess())  cout<<i<<" "<<&gens[i]<<" "<<gens[i].pdgId()<<" "<<gens[i].status()<<" "<<gens[i].mother()<<"\t"<<gens[i].energy()<<" "<<gens[i].p()<<" "<<gens[i].eta()<<" "<<gens[i].phi()<<endl;
+    cout<<i<<" ";
+    PrintGen(gens[i]);
+  }
+}  
+void PrintGens(const vector<reco::GenParticle*>& gens){
+  for(unsigned int i=0;i<gens.size();i++){
+    cout<<i<<" ";
+    PrintGen(*gens[i]);
+  }
+}  
 
 void loop(TString infile,TString outfile){
   cout << "Loading FW Lite setup." << endl;
@@ -162,42 +203,55 @@ void loop(TString infile,TString outfile){
   map<TString,TH1D*> hists_base;
   hists_base["njet"]=new TH1D("njet","njet",20,0,20);
   hists_base["jet_pt"]=new TH1D("jet_pt","jet_pt",60,0,300);
-  hists_base["jet_eta"]=new TH1D("jet_eta","jet_eta",20,-5,5);
+  hists_base["jet_eta"]=new TH1D("jet_eta","jet_eta",40,-5,5);
   hists_base["nbjet"]=new TH1D("nbjet","nbjet",5,0,5);
   hists_base["bjet_pt"]=new TH1D("bjet_pt","bjet_pt",60,0,300);
-  hists_base["bjet_eta"]=new TH1D("bjet_eta","bjet_eta",20,-5,5);
+  hists_base["bjet_eta"]=new TH1D("bjet_eta","bjet_eta",40,-5,5);
   hists_base["W_m"]=new TH1D("W_m","W_m",60,50,110);
   hists_base["W_pt"]=new TH1D("W_pt","W_pt",60,0,300);
-  hists_base["W_eta"]=new TH1D("W_eta","W_eta",20,-5,5);
+  hists_base["W_eta"]=new TH1D("W_eta","W_eta",40,-5,5);
   hists_base["V_m"]=new TH1D("V_m","V_m",60,50,110);
   hists_base["V_pt"]=new TH1D("V_pt","V_pt",60,0,300);
-  hists_base["V_eta"]=new TH1D("V_eta","V_eta",20,-5,5);
+  hists_base["V_eta"]=new TH1D("V_eta","V_eta",40,-5,5);
   hists_base["t_m"]=new TH1D("t_m","t_m",75,100,250); 
   hists_base["t_pt"]=new TH1D("t_pt","t_pt",500,0,2000);
-  hists_base["t_eta"]=new TH1D("t_eta","t_eta",20,-5,5);
+  hists_base["t_eta"]=new TH1D("t_eta","t_eta",40,-5,5);
+  hists_base["t_rap"]=new TH1D("t_rap","t_rap",40,-5,5);
+  hists_base["tt_m"]=new TH1D("tt_m","tt_m",100,0,500); 
+  hists_base["tt_pt"]=new TH1D("tt_pt","tt_pt",500,0,2000);
+  hists_base["tt_eta"]=new TH1D("tt_eta","tt_eta",40,-5,5);
+  hists_base["tt_rap"]=new TH1D("tt_rap","tt_rap",40,-5,5);
+  hists_base["ttV_m"]=new TH1D("ttV_m","ttV_m",100,0,500); 
+  hists_base["ttV_pt"]=new TH1D("ttV_pt","ttV_pt",500,0,2000);
+  hists_base["ttV_eta"]=new TH1D("ttV_eta","ttV_eta",40,-5,5);
+  hists_base["ttV_rap"]=new TH1D("ttV_rap","ttV_rap",40,-5,5);
+  
+  hists_base["l0_pt"]=new TH1D("l0_pt","l0_pt",50,0,100);
+  hists_base["l1_pt"]=new TH1D("l1_pt","l1_pt",50,0,100);
+  hists_base["lldelphi"]=new TH1D("lldelphi","lldelphi",40,-5,5);
 
   hists_base["gen_W_m"]=new TH1D("gen_W_m","gen_W_m",60,50,110);
   hists_base["gen_W_pt"]=new TH1D("gen_W_pt","gen_W_pt",60,0,300);
-  hists_base["gen_W_eta"]=new TH1D("gen_W_eta","gen_W_eta",20,-5,5);
+  hists_base["gen_W_eta"]=new TH1D("gen_W_eta","gen_W_eta",40,-5,5);
   hists_base["gen_V_m"]=new TH1D("gen_V_m","gen_V_m",60,50,110);
   hists_base["gen_V_pt"]=new TH1D("gen_V_pt","gen_V_pt",60,0,300);
-  hists_base["gen_V_eta"]=new TH1D("gen_V_eta","gen_V_eta",20,-5,5);
+  hists_base["gen_V_eta"]=new TH1D("gen_V_eta","gen_V_eta",40,-5,5);
   hists_base["gen_t_m"]=new TH1D("gen_t_m","gen_t_m",75,100,250); 
   hists_base["gen_t_pt"]=new TH1D("gen_t_pt","gen_t_pt",500,0,2000);
-  hists_base["gen_t_eta"]=new TH1D("gen_t_eta","gen_t_eta",20,-5,5);
+  hists_base["gen_t_eta"]=new TH1D("gen_t_eta","gen_t_eta",40,-5,5);
 
   hists_base["hard_W_m"]=new TH1D("hard_W_m","hard_W_m",60,50,110);
   hists_base["hard_W_pt"]=new TH1D("hard_W_pt","hard_W_pt",60,0,300);
-  hists_base["hard_W_eta"]=new TH1D("hard_W_eta","hard_W_eta",20,-5,5);
+  hists_base["hard_W_eta"]=new TH1D("hard_W_eta","hard_W_eta",40,-5,5);
   hists_base["hard_V_m"]=new TH1D("hard_V_m","hard_V_m",60,50,110);
   hists_base["hard_V_pt"]=new TH1D("hard_V_pt","hard_V_pt",60,0,300);
-  hists_base["hard_V_eta"]=new TH1D("hard_V_eta","hard_V_eta",20,-5,5);
+  hists_base["hard_V_eta"]=new TH1D("hard_V_eta","hard_V_eta",40,-5,5);
   hists_base["hard_t_m"]=new TH1D("hard_t_m","hard_t_m",75,100,250); 
   hists_base["hard_t_pt"]=new TH1D("hard_t_pt","hard_t_pt",60,0,300);
-  hists_base["hard_t_eta"]=new TH1D("hard_t_eta","hard_t_eta",20,-5,5);
+  hists_base["hard_t_eta"]=new TH1D("hard_t_eta","hard_t_eta",40,-5,5);
   hists_base["hard_b_m"]=new TH1D("hard_b_m","hard_b_m",80,0,20); 
   hists_base["hard_b_pt"]=new TH1D("hard_b_pt","hard_b_pt",60,0,300);
-  hists_base["hard_b_eta"]=new TH1D("hard_b_eta","hard_b_eta",20,-5,5);
+  hists_base["hard_b_eta"]=new TH1D("hard_b_eta","hard_b_eta",40,-5,5);
 
   for(int i=0;i<8;i++){
     hists_base[Form("jet%d_pt",i)]=new TH1D(Form("jet%d_pt",i),Form("jet%d_pt",i),60,0,300);
@@ -209,6 +263,8 @@ void loop(TString infile,TString outfile){
   hists["sumw"]=new TH1D("sumw","sumw",200,0,200);
   int fire=0;
   for(ev.toBegin();!ev.atEnd();++ev){
+    //if(ievent>100) break;
+    if(ievent%1000==0) cout<<ievent<<endl;
     fwlite::Handle<std::vector<reco::GenParticle>> gens_;
     gens_.getByLabel(ev,"genParticles");
     const vector<reco::GenParticle>& gens=*gens_.ptr();
@@ -241,12 +297,18 @@ void loop(TString infile,TString outfile){
 
     reco::GenJet *bjet=FindJet(jets,b); RemoveJet(jets,bjet);
     reco::GenJet *bbarjet=FindJet(jets,bbar); RemoveJet(jets,bbarjet);
-    tuple<reco::GenJet*,reco::GenJet*> Wjets=FindWJets(jets,W); RemoveJet(jets,get<0>(Wjets)); RemoveJet(jets,get<1>(Wjets));
-    tuple<reco::GenJet*,reco::GenJet*> Wbarjets=FindWJets(jets,Wbar); RemoveJet(jets,get<0>(Wbarjets)); RemoveJet(jets,get<1>(Wbarjets));
-    tuple<reco::GenJet*,reco::GenJet*> Vjets=FindBosonJets(jets,V); RemoveJet(jets,get<0>(Vjets)); RemoveJet(jets,get<1>(Vjets));
 
     TLorentzVector vec_bjet=MakeTLorentzVector(bjet),vec_bbarjet=MakeTLorentzVector(bbarjet);
-    TLorentzVector vec_Wjets=MakeTLorentzVector(Wjets), vec_Wbarjets=MakeTLorentzVector(Wbarjets), vec_Vjets=MakeTLorentzVector(Vjets);
+    vector<reco::GenParticle*> W_descendants=FindDescendants(gens,W,1), Wbar_descendants=FindDescendants(gens,Wbar,1), V_descendants=FindDescendants(gens,V,1);
+    TLorentzVector vec_Wjets=MakeTLorentzVector(W_descendants), vec_Wbarjets=MakeTLorentzVector(Wbar_descendants), vec_Vjets=MakeTLorentzVector(V_descendants);
+    TLorentzVector vec_l0,vec_l1;
+    for(const auto& gen:W_descendants)
+      if(gen->pdgId()==-11||gen->pdgId()==-13) vec_l0=MakeTLorentzVector(gen);
+    for(const auto& gen:Wbar_descendants)
+      if(gen->pdgId()==11||gen->pdgId()==13) vec_l1=MakeTLorentzVector(gen);
+
+    //cout<<"W pointer: "<<W<<endl;
+    //cout<<"W index: "<<GetIndex(gens,W)<<endl;
 
     vector<reco::GenParticle> bjets;
     if(bjet) bjets.push_back(*bjet);
@@ -261,13 +323,13 @@ void loop(TString infile,TString outfile){
 
       hists["njet"+suf]->Fill(jets_ptcut.size(),weights[i]);
       double HT=0;
-      for(int j=0;j<jets_ptcut.size()&&j<8;j++){
-	reco::GenJet* jet=jets_ptcut[j];
+      for(int i=0;i<jets_ptcut.size()&&i<8;i++){
+	reco::GenJet* jet=jets_ptcut[i];
 	HT+=jet->pt();
 	hists["jet_pt"+suf]->Fill(jet->pt(),weights[i]);
 	hists["jet_eta"+suf]->Fill(jet->eta(),weights[i]);
-	hists[Form("jet%d_pt%s",j,suf.Data())]->Fill(jet->pt(),weights[i]);
-	hists[Form("jet%d_eta%s",j,suf.Data())]->Fill(jet->eta(),weights[i]);
+	hists[Form("jet%d_pt%s",i,suf.Data())]->Fill(jet->pt(),weights[i]);
+	hists[Form("jet%d_eta%s",i,suf.Data())]->Fill(jet->eta(),weights[i]);
       }
       hists["jet_ht"+suf]->Fill(HT,weights[i]);
 
@@ -299,46 +361,58 @@ void loop(TString infile,TString outfile){
 	hists["bjet_eta"+suf]->Fill(bjet.eta(),weights[i]);
       }
       
-      if(get<0>(Wjets)){
-	hists["W_m"+suf]->Fill(vec_Wjets.M(),weights[i]);
-	hists["W_pt"+suf]->Fill(vec_Wjets.Pt(),weights[i]);
-	hists["W_eta"+suf]->Fill(vec_Wjets.Eta(),weights[i]);
+      hists["W_m"+suf]->Fill(vec_Wjets.M(),weights[i]);
+      hists["W_pt"+suf]->Fill(vec_Wjets.Pt(),weights[i]);
+      hists["W_eta"+suf]->Fill(vec_Wjets.Eta(),weights[i]);
+      hists["W_m"+suf]->Fill(vec_Wbarjets.M(),weights[i]);
+      hists["W_pt"+suf]->Fill(vec_Wbarjets.Pt(),weights[i]);
+      hists["W_eta"+suf]->Fill(vec_Wbarjets.Eta(),weights[i]);
+      hists["V_m"+suf]->Fill(vec_Vjets.M(),weights[i]);
+      hists["V_pt"+suf]->Fill(vec_Vjets.Pt(),weights[i]);
+      hists["V_eta"+suf]->Fill(vec_Vjets.Eta(),weights[i]);
+      hists["l0_pt"+suf]->Fill(vec_l0.Pt(),weights[i]);
+      hists["l1_pt"+suf]->Fill(vec_l1.Pt(),weights[i]);
+      hists["lldelphi"+suf]->Fill(vec_l0.DeltaPhi(vec_l1),weights[i]);
+      /*
+      if(vec_l0.DeltaPhi(vec_l1)==0){
+	cout<<"W"<<endl;
+	PrintGens(W_descendants);
+	cout<<"Wbar"<<endl;
+	PrintGens(Wbar_descendants);
+	cout<<"V"<<endl;
+	PrintGens(V_descendants);
+	cout<<"All"<<endl;
+	PrintGens(gens);
       }
-      if(get<0>(Wbarjets)){
-	hists["W_m"+suf]->Fill(vec_Wbarjets.M(),weights[i]);
-	hists["W_pt"+suf]->Fill(vec_Wbarjets.Pt(),weights[i]);
-	hists["W_eta"+suf]->Fill(vec_Wbarjets.Eta(),weights[i]);
-      }
-      if(get<0>(Vjets)){
-	hists["V_m"+suf]->Fill(vec_Vjets.M(),weights[i]);
-	hists["V_pt"+suf]->Fill(vec_Vjets.Pt(),weights[i]);
-	hists["V_eta"+suf]->Fill(vec_Vjets.Eta(),weights[i]);
-      }      
-      if(bjet&&get<0>(Wjets)){
+      */
+      if(bjet){
 	hists["t_m"+suf]->Fill((vec_bjet+vec_Wjets).M(),weights[i]);
 	hists["t_pt"+suf]->Fill((vec_bjet+vec_Wjets).Pt(),weights[i]);
 	hists["t_eta"+suf]->Fill((vec_bjet+vec_Wjets).Eta(),weights[i]);
+	hists["t_rap"+suf]->Fill((vec_bjet+vec_Wjets).Rapidity(),weights[i]);
       }	
-      if(bbarjet&&get<0>(Wbarjets)){
+      if(bbarjet){
 	hists["t_m"+suf]->Fill((vec_bbarjet+vec_Wbarjets).M(),weights[i]);
 	hists["t_pt"+suf]->Fill((vec_bbarjet+vec_Wbarjets).Pt(),weights[i]); 
 	hists["t_eta"+suf]->Fill((vec_bbarjet+vec_Wbarjets).Eta(),weights[i]);
+	hists["t_rap"+suf]->Fill((vec_bbarjet+vec_Wbarjets).Rapidity(),weights[i]);
       }
-
-    }
-
-    
-    /*
-    for(unsigned int i=0;i<gens.size();i++){
-      if(gens[i].isHardProcess())  cout<<i<<" "<<&gens[i]<<" "<<gens[i].pdgId()<<" "<<gens[i].status()<<" "<<gens[i].mother()<<"\t"<<gens[i].energy()<<" "<<gens[i].p()<<" "<<gens[i].eta()<<" "<<gens[i].phi()<<endl;
-      //      cout<<i<<" "<<&gens[i]<<" "<<gens[i].pdgId()<<" "<<gens[i].status()<<" "<<gens[i].mother()<<"\t"<<gens[i].isHardProcess()<<gens[i].isLastCopy()<<gens[i].isLastCopyBeforeFSR()<<gens[i].isPromptDecayed()<<gens[i].isPromptFinalState()<<endl;
-    }
-    */
+      if(bjet&&bbarjet){
+	hists["tt_m"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets).M(),weights[i]);
+	hists["tt_pt"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets).Pt(),weights[i]);
+	hists["tt_eta"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets).Eta(),weights[i]);
+	hists["tt_rap"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets).Rapidity(),weights[i]);
+	hists["ttV_m"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets+vec_Vjets).M(),weights[i]);
+	hists["ttV_pt"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets+vec_Vjets).Pt(),weights[i]);
+	hists["ttV_eta"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets+vec_Vjets).Eta(),weights[i]);
+	hists["ttV_rap"+suf]->Fill((vec_bjet+vec_Wjets+vec_bbarjet+vec_Wbarjets+vec_Vjets).Rapidity(),weights[i]);
+      }
+    }    
     ievent++;
   }
   TFile fout(outfile,"recreate");
   for(const auto& im:hists){
     im.second->Write();
   }
-  cout<<fire<<endl;
+  //cout<<fire<<endl;
 }

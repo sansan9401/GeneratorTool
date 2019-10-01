@@ -2,6 +2,8 @@
 
 export LANG=C
 export GENERATORTOOLS_BASE=`pwd`
+#export LD_LIBRARY_PATH=$GENERATORTOOLS_BASE:$LD_LIBRARY_PATH
+export ROOT_INCLUDE_PATH=$GENERATORTOOLS_BASE:$ROOT_INCLUDE_PATH
 if condor_status 2>/dev/null
 then
     echo "[GeneratorTools] using condor"

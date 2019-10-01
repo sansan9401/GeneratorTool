@@ -8,7 +8,21 @@ vector<TString> Split(TString s,TString del){
   return out;
 }
 
-////////////////////////event eneration speed/////////////////////////////////
+////////////////////////Cpus/////////////////////////////////
+int GetCpus(TString gridpackdir){
+  double ncpu=gSystem->GetFromPipe("find "+gridpackdir+" -maxdepth 1 -name '*.log'|xargs -i tail {}|grep Cpus|awk '{print $4}'").Atoi();
+  return ncpu;
+}
+
+////////////////////////gridpack generation speed/////////////////////////////////
+double GetGridpackGenerationSpeed(TString gridpackdir){ 
+  double real=gSystem->GetFromPipe("find "+gridpackdir+" -maxdepth 1 -name '*.err'|xargs -i tail -n 500 {}|grep ^real|sed 's/[^0-9.]/ /g'|awk '{print $1}'").Atof();
+  //double user=gSystem->GetFromPipe("tail "+log+"|grep ^user|sed 's/[^0-9.]/ /g'|awk '{print $1}'").Atof();
+  //double sys=gSystem->GetFromPipe("tail "+log+"|grep ^sys|sed 's/[^0-9.]/ /g'|awk '{print $1}'").Atof();
+  return real;
+}
+
+////////////////////////event generation speed/////////////////////////////////
 tuple<double,double> GetEventGenerationSpeedAndError(TString eventdir){
   vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do TIME=$(tail -n 500 $filename|grep '^real'|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
   double sumwx=0,sumw=0,sumwx2=0;
