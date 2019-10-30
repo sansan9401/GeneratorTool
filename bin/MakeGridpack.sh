@@ -2,15 +2,17 @@
 
 if [ -z "$1" ]
 then 
-    echo "usage: $0 CARDPATH [NCORE]"
+    echo "usage: $0 CARDPATH [NCORE] [fragment_template]"
     echo "example: $0 Sherpa/Card/Run.dat_ttH 4"
-    echo "         $0 MG/Card/ttH 4"
+    echo "         $0 MG/Card/ttH 4 script/template_MG_NLO_CP5_cff.py"
     exit 1
 fi
 CARDPATH=$1
 NCORE=${2:-1}
+if [ ! -z "$3" ]; then TEMPLATE=$(realpath $3);fi
 echo "CARDPATH=$CARDPATH"
 echo "NCORE=$NCORE"
+echo "TEMPLATE=$TEMPLATE"
 
 if [ ! -e $CARDPATH ]
 then
@@ -99,22 +101,27 @@ else
     echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
     echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
-    if grep "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
+    if [ -z "$TEMPLATE" ]
     then
-	if [ $NJETMAX -gt 0 ]
+	if grep "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
 	then
-	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	else
-	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	fi	    
-    else 
-	if [ $NJETMAX -gt 0 ]
-	then 
-	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	else
-	    echo "cp $GENERATORTOOLS_BASE/script/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	fi
-    fi	
+	    if [ $NJETMAX -gt 0 ]
+	    then
+		echo "cp $GENERATORTOOLS_BASE/script/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    else
+		echo "cp $GENERATORTOOLS_BASE/script/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    fi	    
+	else 
+	    if [ $NJETMAX -gt 0 ]
+	    then 
+		echo "cp $GENERATORTOOLS_BASE/script/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    else
+		echo "cp $GENERATORTOOLS_BASE/script/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    fi
+	fi	
+    else
+	echo "cp $TEMPLATE $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT	
+    fi
     echo "sed -i 's@GRIDPACKLOCATION@'\$(find $GRIDPATH -type f -name \"${PROCESSNAME}_*_tarball.tar.xz\")'@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
     echo "sed -i 's@NJETMAX@$NJETMAX@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
     echo "ln -sf $MG_PYTHON_DIR/${PROCESSNAME}.py $GRIDPATH/" >>$SCRIPT
