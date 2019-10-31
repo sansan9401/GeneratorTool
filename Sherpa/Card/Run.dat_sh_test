@@ -1,4 +1,5 @@
 (run){
+OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
  % general settings
  EVENTS 0; ERROR 0.1;
 

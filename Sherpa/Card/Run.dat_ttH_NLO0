@@ -1,4 +1,5 @@
 (run){
+OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   % general setting
 
   % scales, tags for scale variations
@@ -29,9 +30,9 @@
   SCALE_VARIATIONS 0.25,0.25 0.25,1. 1.,0.25 1.,1. 1.,4. 4.,1. 4.,4.;
   ASSOCIATED_CONTRIBUTIONS_VARIATIONS EW EW|LO1 EW|LO1|LO2 EW|LO1|LO2|LO3;
   PDF_LIBRARY LHAPDFSherpa;
-  PDF_SET NNPDF30_nlo_as_0118;
+  PDF_SET NNPDF31_nlo_as_0118;
   USE_PDF_ALPHAS=1;
-  PDF_VARIATIONS=NNPDF30_nnlo_as_0118[all] NNPDF30_nnlo_as_0117 NNPDF30_nnlo_as_0119
+  PDF_VARIATIONS=NNPDF31_nnlo_as_0118[all] NNPDF31_nnlo_as_0117 NNPDF31_nnlo_as_0119
 
   % various settings given via command line
   BEAM_1=2212;

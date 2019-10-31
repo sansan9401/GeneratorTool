@@ -1,36 +1,49 @@
 #!/bin/bash
 
-if [ -z "$1" ]
+if [ -z "$1" -o -z "$2" ]
 then 
-    echo "usage: $0 CARDPATH [NCORE] [fragment_template]"
-    echo "example: $0 Sherpa/Card/Run.dat_ttH 4"
-    echo "         $0 MG/Card/ttH 4 script/template_MG_NLO_CP5_cff.py"
+    echo "usage: $0 Sherpa|MG PROCESSNAME [NCORE] [fragment_template]"
+    echo "example: $0 Sherpa ttH 4"
+    echo "         $0 MG ttH 4 python/MG_NLO_CP5_cff.py"
     exit 1
 fi
-CARDPATH=$1
-NCORE=${2:-1}
-if [ ! -z "$3" ]; then TEMPLATE=$(realpath $3);fi
+
+test -z "$GENERATORTOOLS_BASE" && { echo "Please source setup.sh";exit 1; }
+source $GENERATORTOOLS_BASE/bin/functions.sh
+CheckCMSSW
+
+GENERATOR="$1"
+if [ "$GENERATOR" = Sherpa ]
+then
+    CARDPATH=$GENERATORTOOLS_BASE/$GENERATOR/Card/Run.dat_${2}
+elif [ "$GENERATOR" = MG ]
+then 
+    CARDPATH=$GENERATORTOOLS_BASE/$GENERATOR/Card/${2}
+else
+    echo "first argument should be Sherpa or MG"
+    exit 1
+fi
+PROCESSNAME=$2
+NCORE=${3:-1}
+if [ ! -z "$4" ]
+then TEMPLATE=$(realpath $4)
+else TEMPLATE=AUTO
+fi
+echo "GENERATOR=$GENERATOR"
+echo "PROCESSNAME=$PROCESSNAME"
 echo "CARDPATH=$CARDPATH"
 echo "NCORE=$NCORE"
-echo "TEMPLATE=$TEMPLATE"
 
 if [ ! -e $CARDPATH ]
 then
     echo "No $CARDPATH... Exiting..."
     exit 1
 fi
+
 CARDPATH=$(realpath $CARDPATH)
 
-if echo $(basename $CARDPATH)|grep -q Run.dat
+if [ "$GENERATOR" = Sherpa ]
 then
-    #### Sherpa Gridpack Generation #####
-    echo "This is Sherpa card"
-    PROCESSNAME=$(basename $CARDPATH|sed 's/Run.dat_//')
-    echo "PROCESSNAME=$PROCESSNAME"
-
-    echo cmssw_base: $CMSSW_BASE
-    echo cmssw_version: $CMSSW_VERSION|grep 10_6_0 || { echo "it is not 10_6_0... Exiting...";exit 1; }
-
     SHERPA_DATA_DIR=$CMSSW_BASE/src/GeneratorInterface/SherpaInterface/data
     SHERPA_PYTHON_DIR=$CMSSW_BASE/src/MY/sherpa/python
     mkdir -p $SHERPA_PYTHON_DIR
@@ -72,21 +85,9 @@ EOF
 	./Sherpa_MakeGridpack_${PROCESSNAME}.sh
     fi
 else
-    #### Madgraph Gridpack Generation #####
-    echo "This is MG card"
-    PROCESSNAME=$(basename $CARDPATH)
-    echo "PROCESSNAME=$PROCESSNAME"
-    NJETMAX=0
-    grep " j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=1
-    grep " j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=2
-    grep " j j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=3
-    grep " j j j j " $CARDPATH/${PROCESSNAME}_proc_card.dat && NJETMAX=4
+    NJETMAX=$(GetNJetMax $GENERATOR $PROCESSNAME)
     echo "NJETMAX=$NJETMAX"
 
-    [[ $CMSSW_BASE ]] && { echo "Use new shell with 'setup.sh nocmsenv' for MG gridpack generation... Exiting...";exit 1; }
-
-    MG_PYTHON_DIR=$GENERATORTOOLS_BASE/external/CMSSW_10_6_0/src/MY/mg/python
-    mkdir -p $MG_PYTHON_DIR
     GRIDPATH=$GENERATORTOOLS_BASE/MG/Gridpack/$PROCESSNAME
     mkdir -p $GRIDPATH
     cd $GRIDPATH
@@ -97,35 +98,27 @@ else
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
     echo "cd $MG_RUN_DIR" >>$SCRIPT
-    echo "time NB_CORE=$NCORE ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME" >>$SCRIPT
+    echo time env -i 'HOME=$HOME' NB_CORE=$NCORE bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME\" >>$SCRIPT
     echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
     echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
-    if [ -z "$TEMPLATE" ]
+    if [ "$TEMPLATE" = AUTO ]
     then
-	if grep "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
+	if grep -q "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
 	then
-	    if [ $NJETMAX -gt 0 ]
-	    then
-		echo "cp $GENERATORTOOLS_BASE/script/template_MG_FXFX_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	    else
-		echo "cp $GENERATORTOOLS_BASE/script/template_MG_NLO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    if [ "$NJETMAX" -gt 0 ]
+	    then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_FXFX_cff.py
+	    else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_NLO_cff.py
 	    fi	    
 	else 
-	    if [ $NJETMAX -gt 0 ]
-	    then 
-		echo "cp $GENERATORTOOLS_BASE/script/template_MG_MLM_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-	    else
-		echo "cp $GENERATORTOOLS_BASE/script/template_MG_LO_cff.py $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
+	    if [ "$NJETMAX" -gt 0 ]
+	    then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_MLM_cff.py
+	    else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_LO_cff.py
 	    fi
 	fi	
-    else
-	echo "cp $TEMPLATE $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT	
     fi
-    echo "sed -i 's@GRIDPACKLOCATION@'\$(find $GRIDPATH -type f -name \"${PROCESSNAME}_*_tarball.tar.xz\")'@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-    echo "sed -i 's@NJETMAX@$NJETMAX@' $MG_PYTHON_DIR/${PROCESSNAME}.py" >>$SCRIPT
-    echo "ln -sf $MG_PYTHON_DIR/${PROCESSNAME}.py $GRIDPATH/" >>$SCRIPT
-    echo "cd $MG_PYTHON_DIR; eval \`scramv1 runtime -sh\`; scram b" >>$SCRIPT
+    echo "Using template $TEMPLATE"
+    echo "$GENERATORTOOLS_BASE/bin/SetTune.sh MG $PROCESSNAME $TEMPLATE" >> $SCRIPT
     chmod +x $SCRIPT
 
     if [[ $GENERATORTOOLS_USECONDOR ]]
