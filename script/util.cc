@@ -22,6 +22,22 @@ double GetGridpackGenerationSpeed(TString gridpackdir){
   return real;
 }
 
+////////////////////////number of events/////////////////////////////////
+int GetNEvent(TString eventdir){
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $NEVENT;done"),"\n");
+  int sumx=0;
+  for(const auto& line:lines){
+    int nevent=line.Atoi();
+    if(nevent==0){
+      cout<<"Unfinished job at "<<line<<endl;
+      continue;
+    }
+    sumx+=nevent;
+  }
+  if(sumx>0) return sumx;
+  else return -1.;
+}
+
 ////////////////////////event generation speed/////////////////////////////////
 tuple<double,double> GetEventGenerationSpeedAndError(TString eventdir){
   vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do TIME=$(tail -n 500 $filename|grep '^real'|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");

@@ -42,6 +42,13 @@ cout<<get<0>(aa)<<" +- "<<get<1>(aa);
 .q'|root -l -b)
     echo $rootoutput
 }
+function GetNEvent {
+    rootoutput=$(echo '.L script/util.cc
+int aa=GetNEvent("'$GENERATORTOOLS_BASE/$1/Event/$2'");
+cout<<aa;
+.q'|root -l -b)
+    echo $rootoutput
+}    
 function GetEventGenerationSpeed { 
     rootoutput=$(echo '.L script/util.cc
 tuple<double,double> aa=GetEventGenerationSpeedAndError("'$GENERATORTOOLS_BASE/$1/Event/$2'");
@@ -67,6 +74,7 @@ else
 fi
 if [ -e $GENERATORTOOLS_BASE/$GENERATOR/Event/$PROCESSNAME ]
 then
+    echo "nevent = "$(GetNEvent $GENERATOR $PROCESSNAME)
     echo "cross section = "$(GetCrossSection $GENERATOR $PROCESSNAME)" pb"
     echo "event generation speed = "$(GetEventGenerationSpeed $GENERATOR $PROCESSNAME)" events/day"
     echo "negative weight fraction = "$(GetNegativeWeight $GENERATOR $PROCESSNAME)
