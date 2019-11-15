@@ -40,7 +40,7 @@ int GetNEvent(TString eventdir){
 
 ////////////////////////event generation speed/////////////////////////////////
 tuple<double,double> GetEventGenerationSpeedAndError(TString eventdir){
-  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do TIME=$(tail -n 500 $filename|grep '^real'|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
+  vector<TString> lines=Split(gSystem->GetFromPipe("find "+eventdir+" -maxdepth 1 -name 'run*' -type d|xargs -i find {} -maxdepth 1 -type f -name 'run*.err'|while read filename;do TIME=$(tail -n 500 $filename|grep '^user'|sed 's/[^0-9.]/ /g'|awk '{print $1*60+$2}' || echo 0); NEVENT=$(grep 'Filter efficiency (event-level)' $filename|awk '{print $4}'|sed 's/[^0-9]//g' || echo 0);echo $TIME $NEVENT;done"),"\n");
   double sumwx=0,sumw=0,sumwx2=0;
   for(const auto& line:lines){
     vector<TString> words=Split(line," ");
@@ -98,10 +98,12 @@ double GetCrossSection(TString eventdir){
 double GetCrossSectionStatError(TString eventdir){
   return get<1>(GetCrossSectionAndStatError(eventdir));
 }
-double GetCrossSectionSysError(TString eventdir){
-  if(gSystem->Exec("ls "+eventdir+"|grep hists.root > /dev/null")!=0) return 0;
+double GetCrossSectionSysError(TString generator,TString processname){
+  TString eventdir=generator+"/Event/"+processname;
+  TString histfile="Hist/sumw_"+generator+"_"+processname+".root";
+  if(gSystem->Exec("ls "+histfile+" > /dev/null")!=0) return 0;
 
-  TFile f(eventdir+"/hists.root");
+  TFile f(histfile);
   TH1* hist=(TH1*)f.Get("sumw");
   if(!hist) return 0;
 

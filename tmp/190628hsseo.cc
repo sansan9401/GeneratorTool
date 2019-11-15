@@ -22,7 +22,7 @@ TCanvas* GetCanvas(TString option){ //option: genspeed(S), crosssection(X), nega
 	  err=get<1>(tu);
 	  if(generator[ig]=="Sherpa"){
 	    sys->SetBinContent(ip*order.size()+io+1,x);
-	    sys->SetBinError(ip*order.size()+io+1,GetCrossSectionSysError(eventdir));
+	    sys->SetBinError(ip*order.size()+io+1,GetCrossSectionSysError(generator[ig],process[ip]+order[io]));
 	  }
 	}else if(option=="negativeweight"||option=="N"){
 	  auto tu=GetNegativeWeightAndError(eventdir);

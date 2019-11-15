@@ -1,4 +1,5 @@
 (run){
+OUTPUT=2
 OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   % general setting
 
@@ -28,7 +29,7 @@ OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   %PDF/scale weights 
   HEPMC_USE_NAMED_WEIGHTS 1;
   SCALE_VARIATIONS 0.25,0.25 0.25,1. 1.,0.25 1.,1. 1.,4. 4.,1. 4.,4.;
-  ASSOCIATED_CONTRIBUTIONS_VARIATIONS EW EW|LO1 EW|LO1|LO2 EW|LO1|LO2|LO3;
+  %ASSOCIATED_CONTRIBUTIONS_VARIATIONS EW EW|LO1 EW|LO1|LO2 EW|LO1|LO2|LO3;
   PDF_LIBRARY LHAPDFSherpa;
   PDF_SET NNPDF31_nlo_as_0118;
   USE_PDF_ALPHAS=1;
@@ -49,10 +50,10 @@ OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   MASS[15]=1.777;
   WIDTH[15]=2.26735e-12;
 
-  MASS[23]=91.1876;
+  MASS[23]=91.188;
   WIDTH[23]=0;
 
-  MASS[24]=80.399;
+  MASS[24]=80.419;
   STABLE[24]=0;
   WIDTH[24]=0;
 
@@ -60,16 +61,21 @@ OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   STABLE[25]=0;
   WIDTH[25]=0;
 
-  SIN2THETAW=0.23113;
+  SIN2THETAW=0.2222465;
   HDH_WIDTH[6,24,5]=1.32;
   HDH_WIDTH[-6,-24,-5]=1.32;
-  HDH_WIDTH[25,5,-5]=2.35e-3;
-  HDH_WIDTH[25,15,-15]=2.57e-4;
-  HDH_WIDTH[25,13,-13]=8.91e-7;
-  HDH_WIDTH[25,4,-4]=1.18e-4;
-  HDH_WIDTH[25,3,-3]=1.00e-6;
-  HDH_WIDTH[25,21,21]=3.49e-4;
-  HDH_WIDTH[25,22,22]=9.28e-6;
+  %YUKAWA[3]=0.2;
+  %YUKAWA[4]=1.42;
+  %YUKAWA[5]=4.8;
+  %YUKAWA[13]=0.105;
+  %YUKAWA[15]=1.777;
+  %HDH_WIDTH[25,5,-5]=2.35e-3;
+  %HDH_WIDTH[25,15,-15]=2.57e-4;
+  %HDH_WIDTH[25,13,-13]=8.91e-7;
+  %HDH_WIDTH[25,4,-4]=1.18e-4;
+  %HDH_WIDTH[25,3,-3]=1.00e-6;
+  %HDH_WIDTH[25,21,21]=3.49e-4;
+  %HDH_WIDTH[25,22,22]=9.28e-6;
   HDH_WIDTH[24,2,-1]=0.7041;
   HDH_WIDTH[24,4,-3]=0.7041;
   HDH_WIDTH[24,12,-11]=0.2256;
@@ -100,6 +106,6 @@ OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
   ME_Generator Amegic {LJET};
   RS_ME_Generator Comix {LJET};
   Loop_Generator LOOPGEN {LJET};
-  Associated_Contributions EW|LO1|LO2|LO3 {LJET};
+  %Associated_Contributions EW|LO1|LO2|LO3 {LJET};
   End process;
 }(processes)

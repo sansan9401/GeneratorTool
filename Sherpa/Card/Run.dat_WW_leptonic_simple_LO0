@@ -1,0 +1,55 @@
+(run){
+OUTPUT=2
+OL_PREFIX=/data4/Users/hsseo/GeneratorTools/external/OpenLoops-2.1.0
+    BEAM_1 2212; BEAM_ENERGY_1 6500.;
+    BEAM_2 2212; BEAM_ENERGY_2 6500.;    
+    MAX_PROPER_LIFETIME=10.0
+    HEPMC_TREE_LIKE=1
+    PRETTY_PRINT=Off
+    OVERWEIGHT_THRESHOLD=10
+    HEPMC_USE_NAMED_WEIGHTS=1
+    SCALE_VARIATIONS=0.25,0.25 0.25,1. 1.,0.25 1.,1. 1.,4. 4.,1. 4.,4.
+
+    HDH_STATUS[24,2,-1]=0
+    HDH_STATUS[24,4,-3]=0
+    HDH_STATUS[24,16,-15]=0
+    HDH_STATUS[-24,-2,1]=0
+    HDH_STATUS[-24,-4,3]=0
+    HDH_STATUS[-24,-16,15]=0
+    OL_PARAMETERS=preset=2 write_parameters=1
+    PDF_LIBRARY=LHAPDFSherpa
+    USE_PDF_ALPHAS=1
+    PDF_SET=NNPDF31_nnlo_as_0118
+    PDF_VARIATIONS=NNPDF31_nnlo_as_0118[all] NNPDF31_nnlo_as_0117 NNPDF31_nnlo_as_0119
+    
+    HARD_DECAYS=1;
+    STABLE[6] = 0; WIDTH[6]=0.0;
+    STABLE[23] = 0; STABLE[24] = 0;
+    ACTIVE[25] = 0;
+    
+    CORE_SCALE VAR{H_TM2/4}
+    EXCLUSIVE_CLUSTER_MODE 1;
+    
+    # merging setup
+    QCUT:=30.;
+    LJET:=; NJET:=0; 
+    
+    ME_SIGNAL_GENERATOR Comix Amegic OpenLoops;
+    INTEGRATION_ERROR=0.05;
+    
+    # top/W decays
+    HARD_DECAYS On; HARD_SPIN_CORRELATIONS 1;
+    STABLE[24] 0; WIDTH[24] 0; STABLE[6] 0; WIDTH[6] 0;
+
+}(run)
+
+(processes){
+    Process 93 93 -> 24 -24 93{NJET};
+    Order (*,2);
+    CKKW sqr(QCUT/E_CMS);
+    NLO_QCD_Mode MC@NLO {LJET}; 
+    ME_Generator Amegic {LJET};
+    RS_ME_Generator Comix {LJET};
+    Loop_Generator OpenLoops {LJET};
+    End process;    
+}(processes)

@@ -21,6 +21,13 @@ echo "PROCESSNAME=$PROCESSNAME"
 echo "ROOTSCRIPT=$ROOTSCRIPT"
 echo "EVENT_DIR=$EVENT_DIR"
 
+echo -n "Check script... "
+CHECK=$(root -l -b < <(echo .L $ROOTSCRIPT+) 2>&1)
+if echo $CHECK|grep -q error
+then echo $CHECK; exit 1;
+else echo "success"
+fi
+
 FILES=($(find $EVENT_DIR -maxdepth 2 -name "*GEN*.root"))
 WAITLIST=()
 echo Total ${#FILES[@]} root files are detected
@@ -35,7 +42,7 @@ do
     cd $DIRNAME
     SCRIPT=${GENERATOR}_MakeHists_${PROCESSNAME}.sh
     echo "#!/bin/bash" >$SCRIPT
-    echo 'echo -e ".L '$ROOTSCRIPT'\n loop(\"'$REALPATH'\",\"'$DIRNAME'/hists.root\");\n .q"|root -l -b' >>$SCRIPT
+    echo 'echo -e ".L '$ROOTSCRIPT'+\n loop(\"'$REALPATH'\",\"'$DIRNAME'/hists.root\");\n .q"|root -l -b' >>$SCRIPT
     chmod +x $SCRIPT
     
     if [[ $GENERATORTOOLS_USECONDOR ]]
