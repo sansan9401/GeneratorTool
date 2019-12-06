@@ -1,0 +1,6 @@
+import model sm-no_b_mass
+
+generate p p > z > w+ w- @0
+add process p p > a > w+ w- @1
+
+output WW_sch_leptonic_LO0 -nojpeg

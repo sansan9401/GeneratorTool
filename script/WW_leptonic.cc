@@ -136,6 +136,12 @@ void loop(TString infile,TString outfile){
       TLorentzVector vec_hard_Wp=MakeTLorentzVector(hard_Wp);
       TLorentzVector vec_hard_Wm=MakeTLorentzVector(hard_Wm);
 
+      TLorentzVector vec_hard_WW=vec_hard_Wp+vec_hard_Wm;
+      TLorentzVector vec_hardCM_Wp=vec_hard_Wp;
+      vec_hardCM_Wp.Boost(-vec_hard_WW.BoostVector());
+      TLorentzVector vec_hardCM_Wm=vec_hard_Wm;
+      vec_hardCM_Wm.Boost(-vec_hard_WW.BoostVector());
+      
       TLorentzVector vec_last_Wp=MakeTLorentzVector(last_Wp);
       TLorentzVector vec_last_Wm=MakeTLorentzVector(last_Wm);
 
@@ -145,7 +151,11 @@ void loop(TString infile,TString outfile){
       TLorentzVector vec_HD_nubar=MakeTLorentzVector(HD_nubar);
       TLorentzVector vec_HD_Wp=vec_HD_lbar+vec_HD_nu;
       TLorentzVector vec_HD_Wm=vec_HD_l+vec_HD_nubar;
-
+      TLorentzVector vec_HDCM_l=vec_HD_l;
+      vec_HDCM_l.Boost(-vec_hard_Wm.BoostVector());
+      TLorentzVector vec_HDCM_lbar=vec_HD_lbar;
+      vec_HDCM_lbar.Boost(-vec_hard_Wp.BoostVector());
+      
       TLorentzVector vec_l=MakeTLorentzVector(l);
       TLorentzVector vec_lbar=MakeTLorentzVector(lbar);
       TLorentzVector vec_nu=MakeTLorentzVector(nu);
@@ -167,19 +177,26 @@ void loop(TString infile,TString outfile){
       TLorentzVector vec_dressed_Wm=vec_dressed_l+vec_nubar;
       TLorentzVector vec_WW=vec_Wp+vec_Wm;
 
+
+      
+
       FillHist("WW_m",vec_WW.M(),weights[0],50,30,130);
       FillHist("WW_pt",vec_WW.Pt(),weights[0],50,0,100);
       FillHist("WW_rap",vec_WW.Rapidity(),weights[0],50,-5,5);
 
       FillHist("hard_W_m",vec_hard_Wp.M(),weights[0],120,50,110);
       FillHist("hard_W_m",vec_hard_Wm.M(),weights[0],120,50,110);
+      FillHist("hardCM_Wp_costheta",vec_hardCM_Wp.CosTheta()*TMath::Sign(1,vec_hard_WW.Pz()),weights[0],100,-1,1);
+      FillHist("hardCM_Wm_costheta",vec_hardCM_Wm.CosTheta()*TMath::Sign(1,vec_hard_WW.Pz()),weights[0],100,-1,1);
 
       FillHist("last_W_m",vec_last_Wp.M(),weights[0],120,50,110);
       FillHist("last_W_m",vec_last_Wm.M(),weights[0],120,50,110);
 
       FillHist("HD_W_m",vec_HD_Wp.M(),weights[0],120,50,110);
       FillHist("HD_W_m",vec_HD_Wm.M(),weights[0],120,50,110);
-
+      FillHist("HDCM_l_costheta",cos(vec_HDCM_l.Angle(vec_HD_Wm.Vect())),weights[0],100,-1,1);
+      FillHist("HDCM_lbar_costheta",cos(vec_HDCM_lbar.Angle(vec_HD_Wp.Vect())),weights[0],100,-1,1);
+      
       FillHist("W_m",vec_Wp.M(),weights[0],120,50,110);
       FillHist("W_m",vec_Wm.M(),weights[0],120,50,110);
 
