@@ -43,7 +43,7 @@ fi
 if [ -e $GENERATORTOOLS_BASE/$GENERATOR/Gridpack/$PROCESSNAME ]
 then
     echo "Gridpack already exist... Remove existing gridpack or change processname"
-    echo "rm -r $GENERATORTOOLS_BASE/$GENERATOR/Gridpack/$PROCESSNAME"
+    echo "To remove: rm -r $GENERATORTOOLS_BASE/$GENERATOR/Gridpack/$PROCESSNAME"
     exit 1
 fi
 
@@ -84,7 +84,6 @@ error = Sherpa_MakeGridpack_${PROCESSNAME}.err
 log = Sherpa_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
 getenv = true
-accounting_group = group_cms
 queue
 EOF
 	condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
@@ -105,7 +104,7 @@ else
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
     echo "cd $MG_RUN_DIR" >>$SCRIPT
-    echo time env -i 'HOME=$HOME' NB_CORE=$NCORE bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME\" >>$SCRIPT
+    echo time env -i 'HOME=$HOME' NB_CORE=$NCORE bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME local ALL $SCRAM_ARCH $CMSSW_VERSION\" >>$SCRIPT
     echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
     echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
@@ -137,7 +136,6 @@ error = MG_MakeGridpack_${PROCESSNAME}.err
 log = MG_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
 getenv = true
-accounting_group = group_cms
 queue
 EOF
 	condor_wait MG_MakeGridpack_${PROCESSNAME}.log

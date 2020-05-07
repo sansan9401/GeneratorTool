@@ -87,15 +87,15 @@ average = event_norm ! Normalize events to sum or average to the X sect.
 # For scale dependence: factor rw_scale_up/down around central scale   *
 # For PDF uncertainty: use LHAPDF with supported set                   *
 #***********************************************************************
- .true.   = reweight_scale   ! reweight to get scale dependence
+  F       = reweight_scale   ! reweight to get scale dependence
   0.5     = rw_Rscale_down   ! lower bound for ren scale variations
   2.0     = rw_Rscale_up     ! upper bound for ren scale variations
   0.5     = rw_Fscale_down   ! lower bound for fact scale variations
   2.0     = rw_Fscale_up     ! upper bound for fact scale variations
-True = reweight_PDF     ! reweight to get PDF uncertainty
+  F       = reweight_PDF     ! reweight to get PDF uncertainty
       ! First of the error PDF sets 
       ! Last of the error PDF sets
-True = store_rwgt_info
+  T       = store_rwgt_info
 #***********************************************************************
 # Merging - WARNING! Applies merging only at the hard-event level.     *
 # After showering an MLM-type merging should be applied as well.       *

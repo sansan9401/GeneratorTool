@@ -28,7 +28,15 @@ then echo $CHECK; exit 1;
 else echo "success"
 fi
 
-FILES=($(find $EVENT_DIR -maxdepth 2 -name "*GEN*.root"))
+FILES=($(find $EVENT_DIR -maxdepth 2 -name "events.root"))
+if [ ${#FILES[@]} -eq 0 ];then
+    FILES=($(find $EVENT_DIR -maxdepth 2 -name "*GEN*.root"))
+fi
+if [ ${#FILES[@]} -eq 0 ];then
+    echo No root file. exit...
+    exit 1
+fi
+
 WAITLIST=()
 echo Total ${#FILES[@]} root files are detected
 echo -n "Submitting jobs"

@@ -95,7 +95,7 @@ average = event_norm ! Normalize events to sum or average to the X sect.
   F       = reweight_PDF     ! reweight to get PDF uncertainty
       ! First of the error PDF sets 
       ! Last of the error PDF sets
-  T       = store_rwgt_info
+True = store_rwgt_info
 #***********************************************************************
 # Merging - WARNING! Applies merging only at the hard-event level.     *
 # After showering an MLM-type merging should be applied as well.       *
