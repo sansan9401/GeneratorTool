@@ -73,13 +73,16 @@ then
     cd $GENERATORTOOLS_BASE
 fi
 
+## setup cmsenv
+echo "[GeneratorTools] setup cmsenv"
+cd $GENERATORTOOLS_BASE/external/$GENERATORTOOLS_CMSSW_VERSION/src
+eval `scramv1 runtime -sh`
+cd $GENERATORTOOLS_BASE
+
 ## TH4D 
 if [ -e $GENERATORTOOLS_BASE/external/TH4D/TH4D.h ];then
     ( cd $GENERATORTOOLS_BASE/external/TH4D; make; )
     export LD_LIBRARY_PATH=$GENERATORTOOLS_BASE/external/TH4D:$LD_LIBRARY_PATH
 fi
-
-## workaround for MG error in gridpack generation with reweighting
-[ -z "${PYTHONPATH:-}" ] && export PYTHONPATH=""
 
 export ROOT_INCLUDE_PATH=$GENERATORTOOLS_BASE:$ROOT_INCLUDE_PATH

@@ -87,6 +87,7 @@ for i in $(seq 1 $NCORE);do
 
     ## run bash script
     echo "#!/bin/bash" > run.sh
+    echo "export ROOT_HIST=0" >> run.sh
     echo "cd $WORKING_DIR" >> run.sh
     eval echo $CMSRUN_CMD >> run.sh
     OUTPUT="$EDM_OUTPUT"

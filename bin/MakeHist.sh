@@ -50,6 +50,7 @@ do
     cd $DIRNAME
     SCRIPT=${GENERATOR}_MakeHists_${PROCESSNAME}.sh
     echo "#!/bin/bash" >$SCRIPT
+    echo "export ROOT_HIST=0" >>$SCRIPT
     echo 'echo -e ".L '$ROOTSCRIPT'+\n loop(\"'$REALPATH'\",\"'$DIRNAME'/hists.root\");\n .q"|root -l -b' >>$SCRIPT
     chmod +x $SCRIPT
     
