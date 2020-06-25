@@ -20,13 +20,23 @@ double GetCosThetaCS(TLorentzVector lm,TLorentzVector lp,int direction=0){
     direction=dilepton.Pz()>0?1:-1;
   return direction*2*(lmp*lpm-lmm*lpp)/sqrt(dimass*dimass*(dimass*dimass+dipt*dipt));
 }
-map<TString,TH4D*> hists;
-TH4D* GetHist4D(TString histname){
-  TH4D *h = NULL;
-  std::map<TString, TH4D*>::iterator mapit = hists.find(histname);
+map<TString,TH1*> hists;
+TH1* GetHist(TString histname){
+  TH1 *h = NULL;
+  std::map<TString, TH1*>::iterator mapit = hists.find(histname);
   if(mapit != hists.end()) return mapit->second;
   return h;
 }
+void FillHist(TString histname, Double_t value_x, Double_t weight, Int_t n_binx, Double_t xmin, Double_t xmax){
+  TH1D *this_hist = (TH1D*)GetHist(histname);
+  if( !this_hist ){
+    this_hist = new TH1D(histname, "", n_binx, xmin, xmax);
+    this_hist->SetDirectory(NULL);
+    hists[histname] = (TH1*)this_hist;
+  }
+
+  this_hist->Fill(value_x, weight);
+}  
 void FillHist(TString histname,
 	      Double_t value_x, Double_t value_y, Double_t value_z, Double_t value_u,
 	      Double_t weight,
@@ -35,17 +45,18 @@ void FillHist(TString histname,
 	      Int_t n_binz, Double_t *zbins,
 	      Int_t n_binu, Double_t *ubins){
   
-  TH4D *this_hist = GetHist4D(histname);
+  TH4D *this_hist = (TH4D*)GetHist(histname);
   if( !this_hist ){
     this_hist = new TH4D(histname, "", n_binx, xbins, n_biny, ybins, n_binz, zbins, n_binu, ubins);
     this_hist->SetDirectory(NULL);
-    hists[histname] = this_hist;
+    hists[histname] = (TH1*)this_hist;
   }
 
   this_hist->Fill(value_x, value_y, value_z, value_u, weight);
 
 }
 void loop(vector<TString> infiles,TString outfile){
+  cout<<"[DY4D] start"<<endl;
   TChain* tree=new TChain("dytree");
   for(const auto& file:infiles)
     tree->AddFile(file);
@@ -107,6 +118,10 @@ void loop(vector<TString> infiles,TString outfile){
   for(int i=0;i<nevent;i++){
     if(i%1000==0) cout<<i<<endl;
     tree->GetEntry(i);
+    FillHist("sumw",0,weight,200,0,200);
+    for(int i=0;i<(int)weights->size();i++){
+      FillHist("sumw",i+1,weights->at(i),200,0,200);
+    }
     TLorentzVector lp,lm,lp_dressed,lm_dressed,lp_bare,lm_bare;
     if(l0_pid>0){
       lm.SetPxPyPzE(l0_px,l0_py,l0_pz,l0_e);
@@ -154,6 +169,15 @@ void loop(vector<TString> infiles,TString outfile){
     FillHist(Form("%scosthetaCS_dressed",prefix.Data()),dilepton_dressed.M(),dilepton_dressed.Rapidity(),dilepton_dressed.Pt(),GetCosThetaCS(lm_dressed,lp_dressed),weight,afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
     FillHist(Form("%scosthetaCS_bare",prefix.Data()),dilepton_bare.M(),dilepton_bare.Rapidity(),dilepton_bare.Pt(),GetCosThetaCS(lm_bare,lp_bare),weight,afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
     FillHist(Form("%scosthetaCS_correct",prefix.Data()),dilepton.M(),dilepton.Rapidity(),dilepton.Pt(),cost_correct,weight,afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
+    if(abs(l0_pid)==11){
+      if((lp.Pt()>25||lm.Pt()>25)&&lp.Pt()>15&&lm.Pt()>15&&fabs(lp.Eta())<2.4&&fabs(lm.Eta())<2.4){
+	FillHist(Form("%scosthetaCS_fid",prefix.Data()),dilepton.M(),dilepton.Rapidity(),dilepton.Pt(),GetCosThetaCS(lm,lp),weight,afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
+      }
+    }else if(abs(l0_pid)==13){
+      if((lp.Pt()>20||lm.Pt()>20)&&lp.Pt()>10&&lm.Pt()>10&&fabs(lp.Eta())<2.4&&fabs(lm.Eta())<2.4){
+	FillHist(Form("%scosthetaCS_fid",prefix.Data()),dilepton.M(),dilepton.Rapidity(),dilepton.Pt(),GetCosThetaCS(lm,lp),weight,afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
+      }
+    }	
 
     for(int i=0;i<(int)weights->size();i++){
       FillHist(Form("%scosthetaCS_%d",prefix.Data(),i),dilepton.M(),dilepton.Rapidity(),dilepton.Pt(),GetCosThetaCS(lm,lp),weights->at(i),afb_mbinnum,(double*)afb_mbin,afb_ybinnum,(double*)afb_ybin,afb_ptbinnum,(double*)afb_ptbin,afb_costbinnum,(double*)afb_costbin);
@@ -174,4 +198,5 @@ void loop(vector<TString> infiles,TString outfile){
     hist->Write(this_name);
     fout.cd();
   }
+  cout<<"[DY4D] end"<<endl;
 }

@@ -91,6 +91,13 @@ EOF
 	./Sherpa_MakeGridpack_${PROCESSNAME}.sh
     fi
 else
+    MG_RUN_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
+    if [ -e $MG_RUN_DIR/$PROCESSNAME ];then
+	echo "temp directory $MG_RUN_DIR/$PROCESSNAME exist"
+	echo "Please remove it: rm -r $MG_RUN_DIR/$PROCESSNAME"
+	exit 1
+    fi
+
     NJETMAX=$(GetNJetMax $GENERATOR $PROCESSNAME)
     echo "NJETMAX=$NJETMAX"
 
@@ -98,7 +105,6 @@ else
     mkdir -p $GRIDPATH
     cd $GRIDPATH
 
-    MG_RUN_DIR=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO
     ln -sf $GENERATORTOOLS_BASE/MG/Card $MG_RUN_DIR/
 
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
@@ -106,7 +112,7 @@ else
     echo "cd $MG_RUN_DIR" >>$SCRIPT
     echo time env -i 'HOME=$HOME' NB_CORE=$NCORE 'PYTHONPATH=$PYTHONPATH' bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME local ALL $SCRAM_ARCH $CMSSW_VERSION\" >>$SCRIPT
     echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
-#    echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
+    echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
     if [ "$TEMPLATE" = AUTO ]
     then

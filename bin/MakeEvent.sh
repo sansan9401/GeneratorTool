@@ -101,7 +101,7 @@ for i in $(seq 1 $NCORE);do
     eval echo $CMSRUN_CMD >> run.sh
     OUTPUT="$EDM_OUTPUT"
     if [ ! -z "$POST_PROCESS" ];then
-	echo 'echo -e ".L '$POST_PROCESS'+\n loop(\"'$EDM_OUTPUT'\",\"events.root\");\n .q"|root -l -b' >> run.sh
+	echo 'echo -e ".L '$POST_PROCESS'+\n loop({\"'$EDM_OUTPUT'\"},\"events.root\");\n .q"|root -l -b' >> run.sh
 	OUTPUT="events.root"
     fi
     [ "$DELETE" = "true" ] && echo "ls -1|egrep -v '^${OUTPUT}$|run.err|run.out|run.sh|run.log'|xargs -i rm -r {}" >> run.sh
