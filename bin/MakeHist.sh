@@ -86,3 +86,4 @@ done
 echo ""
 
 hadd -f $GENERATORTOOLS_BASE/Hist/$(basename ${ROOTSCRIPT%.*})_${GENERATOR}_${PROCESSNAME}.root $EVENT_DIR/run*/hists.root
+rm $EVENT_DIR/run*/hists.root

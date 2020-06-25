@@ -1,0 +1,6 @@
+MG/Event/
+Sherpa/Event/
+bin/*.pyc
+script/*.d
+script/*.so
+script/*.pcm

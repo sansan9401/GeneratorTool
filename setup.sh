@@ -66,9 +66,12 @@ then
     sed -i '/set run_mode 2/a \          echo "set nb_core \${NB_CORE:=1}" >> mgconfigscript' $GRIDPACK_GENERATION
 
     RUNCMSGRID_NLO=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO/runcmsgrid_NLO.sh
+    RUNCMSGRID_LO=$GENERATORTOOLS_BASE/external/genproductions/bin/MadGraph5_aMCatNLO/runcmsgrid_LO.sh
     echo "[GeneratorTools] PATCH: do not run extra systematics"
     echo [GeneratorTools] sed -i '/systematics/d' $RUNCMSGRID_NLO
     sed -i '/systematics/d' $RUNCMSGRID_NLO
+    echo [GeneratorTools] sed -i '/systematics/d' $RUNCMSGRID_LO
+    sed -i '/systematics/d' $RUNCMSGRID_LO
 
     cd $GENERATORTOOLS_BASE
 fi

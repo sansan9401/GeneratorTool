@@ -1,32 +1,18 @@
 change mode NLO
 change rwgt_dir rwgt
-launch --rwgt_name=aew127
-  set sminputs 1 127
+launch --rwgt_name=aew_pdg
+  set sminputs 1 128.723
+launch --rwgt_name=aew_up
+  set sminputs 1 128.707
+launch --rwgt_name=aew_down
+  set sminputs 1 128.738
+launch --rwgt_name=aew125
+  set sminputs 1 125
 launch --rwgt_name=aew128
   set sminputs 1 128
 launch --rwgt_name=aew129
   set sminputs 1 129
 launch --rwgt_name=aew130
   set sminputs 1 130
-launch --rwgt_name=aew131
-  set sminputs 1 131
-launch --rwgt_name=aew132
-  set sminputs 1 132
 launch --rwgt_name=aew133
   set sminputs 1 133
-launch --rwgt_name=aew134
-  set sminputs 1 134
-launch --rwgt_name=aew135
-  set sminputs 1 135
-launch --rwgt_name=aew136
-  set sminputs 1 136
-launch --rwgt_name=aew137
-  set sminputs 1 137
-
-
-
-
-
-
-
-

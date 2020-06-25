@@ -17,20 +17,50 @@ void loop(TString infile,TString outfile){
   fwlite::Event ev(&f);
 
   TFile fout(outfile,"recreate");
-  int l0_pid,l1_pid;
-  float l0_px,l0_py,l0_pz,l0_e,l1_px,l1_py,l1_pz,l1_e,weight;
+  int p0_pid,p1_pid,l0_pid,l1_pid;
+  float p0_x,p1_x;
+  float l0_px,l0_py,l0_pz,l0_e,l1_px,l1_py,l1_pz,l1_e;
+  float l0_px_dressed,l0_py_dressed,l0_pz_dressed,l0_e_dressed,l1_px_dressed,l1_py_dressed,l1_pz_dressed,l1_e_dressed;
+  float l0_px_bare,l0_py_bare,l0_pz_bare,l0_e_bare,l1_px_bare,l1_py_bare,l1_pz_bare,l1_e_bare;
+  float weight;
   vector<float> weights;
   TTree* dytree=new TTree("dytree","dytree");
+  dytree->Branch("p0_pid",&p0_pid,"p0_pid/I");
+  dytree->Branch("p1_pid",&p1_pid,"p1_pid/I");
+  
+  dytree->Branch("p0_x",&p0_x,"p0_x/F");
+  dytree->Branch("p1_x",&p1_x,"p1_x/F");
+
   dytree->Branch("l0_pid",&l0_pid,"l0_pid/I");
+  dytree->Branch("l1_pid",&l1_pid,"l1_pid/I");
+
   dytree->Branch("l0_px",&l0_px,"l0_px/F");
   dytree->Branch("l0_py",&l0_py,"l0_py/F");
   dytree->Branch("l0_pz",&l0_pz,"l0_pz/F");
   dytree->Branch("l0_e",&l0_e,"l0_e/F");
-  dytree->Branch("l1_pid",&l1_pid,"l1_pid/I");
   dytree->Branch("l1_px",&l1_px,"l1_px/F");
   dytree->Branch("l1_py",&l1_py,"l1_py/F");
   dytree->Branch("l1_pz",&l1_pz,"l1_pz/F");
   dytree->Branch("l1_e",&l1_e,"l1_e/F");
+
+  dytree->Branch("l0_px_dressed",&l0_px_dressed,"l0_px_dressed/F");
+  dytree->Branch("l0_py_dressed",&l0_py_dressed,"l0_py_dressed/F");
+  dytree->Branch("l0_pz_dressed",&l0_pz_dressed,"l0_pz_dressed/F");
+  dytree->Branch("l0_e_dressed",&l0_e_dressed,"l0_e_dressed/F");
+  dytree->Branch("l1_px_dressed",&l1_px_dressed,"l1_px_dressed/F");
+  dytree->Branch("l1_py_dressed",&l1_py_dressed,"l1_py_dressed/F");
+  dytree->Branch("l1_pz_dressed",&l1_pz_dressed,"l1_pz_dressed/F");
+  dytree->Branch("l1_e_dressed",&l1_e_dressed,"l1_e_dressed/F");
+
+  dytree->Branch("l0_px_bare",&l0_px_bare,"l0_px_bare/F");
+  dytree->Branch("l0_py_bare",&l0_py_bare,"l0_py_bare/F");
+  dytree->Branch("l0_pz_bare",&l0_pz_bare,"l0_pz_bare/F");
+  dytree->Branch("l0_e_bare",&l0_e_bare,"l0_e_bare/F");
+  dytree->Branch("l1_px_bare",&l1_px_bare,"l1_px_bare/F");
+  dytree->Branch("l1_py_bare",&l1_py_bare,"l1_py_bare/F");
+  dytree->Branch("l1_pz_bare",&l1_pz_bare,"l1_pz_bare/F");
+  dytree->Branch("l1_e_bare",&l1_e_bare,"l1_e_bare/F");
+
   dytree->Branch("weight",&weight,"weight/F");
   dytree->Branch("weights",&weights);
 
@@ -46,6 +76,10 @@ void loop(TString infile,TString outfile){
     fwlite::Handle<GenEventInfoProduct> geninfo;
     geninfo.getByLabel(ev,"generator");
     const vector<double>& gen_weights=geninfo.ptr()->weights();
+    p0_pid=geninfo.ptr()->pdf()->id.first;
+    p1_pid=geninfo.ptr()->pdf()->id.second;
+    p0_x=geninfo.ptr()->pdf()->x.first;
+    p1_x=geninfo.ptr()->pdf()->x.second;
     
     fwlite::Handle<LHEEventProduct> lheevent;
     lheevent.getByLabel(ev,"externalLHEProducer");
@@ -93,10 +127,7 @@ void loop(TString infile,TString outfile){
       leptons={leptons[l0],leptons[l1]};
     }
 
-    vector<TLorentzVector> leptons_vec;
-    if(leptons[0].pdgId()>0&&leptons[1].pdgId()<0) leptons_vec={MakeTLorentzVector(leptons[0]),MakeTLorentzVector(leptons[1])};
-    else if(leptons[0].pdgId()<0&&leptons[1].pdgId()>0) leptons_vec={MakeTLorentzVector(leptons[1]),MakeTLorentzVector(leptons[0])};
-    else {
+    if(leptons[0].pdgId()*leptons[1].pdgId()>0){
       cout<<"same sign!!!"<<endl;
       for(int i=0;i<(int)gens.size();i++){
 	//if(gens[i].isHardProcess()||gens[i].isPromptFinalState()||gens[i].isPromptDecayed()){
@@ -113,24 +144,58 @@ void loop(TString infile,TString outfile){
       }	
       break;
     }
+    
+    vector<TLorentzVector> leptons_vec_bare={MakeTLorentzVector(leptons[0]),MakeTLorentzVector(leptons[1])};
+
+    vector<TLorentzVector> leptons_vec_dressed={MakeTLorentzVector(leptons[0]),MakeTLorentzVector(leptons[1])};
     for(int i=0;i<(int)photons.size();i++){
       TLorentzVector photon=MakeTLorentzVector(photons[i]);
-      if(leptons_vec[0].DeltaR(photon)>0.4&&leptons_vec[1].DeltaR(photon)>0.4) continue;
-      if(leptons_vec[0].DeltaR(photon)<leptons_vec[1].DeltaR(photon)) leptons_vec[0]+=photon;
-      else leptons_vec[1]+=photon;
+      if(leptons_vec_dressed[0].DeltaR(photon)>0.1&&leptons_vec_dressed[1].DeltaR(photon)>0.1) continue;
+      if(leptons_vec_dressed[0].DeltaR(photon)<leptons_vec_dressed[1].DeltaR(photon)) leptons_vec_dressed[0]+=photon;
+      else leptons_vec_dressed[1]+=photon;
     }
 
-    TLorentzVector dilepton=leptons_vec[0]+leptons_vec[1];
+    vector<TLorentzVector> leptons_vec={MakeTLorentzVector(leptons[0]),MakeTLorentzVector(leptons[1])};
+    for(int i=0;i<(int)photons.size();i++){
+      TLorentzVector photon=MakeTLorentzVector(photons[i]);
+      reco::GenParticle* current=&photons[i];
+      while(current->pdgId()==((reco::GenParticle*)current->mother())->pdgId()){
+	current=(reco::GenParticle*)current->mother();
+      }
+      if(((reco::GenParticle*)current->mother())->pdgId()==leptons[0].pdgId()) leptons_vec[0]+=photon;
+      else if(((reco::GenParticle*)current->mother())->pdgId()==leptons[1].pdgId()) leptons_vec[1]+=photon;
+    }
+      
     l0_pid=leptons[0].pdgId();
+    l1_pid=leptons[1].pdgId();
+
     l0_px=leptons_vec[0].Px();
     l0_py=leptons_vec[0].Py();
     l0_pz=leptons_vec[0].Pz();
     l0_e=leptons_vec[0].E();
-    l1_pid=leptons[1].pdgId();
     l1_px=leptons_vec[1].Px();
     l1_py=leptons_vec[1].Py();
     l1_pz=leptons_vec[1].Pz();
     l1_e=leptons_vec[1].E();
+
+    l0_px_dressed=leptons_vec_dressed[0].Px();
+    l0_py_dressed=leptons_vec_dressed[0].Py();
+    l0_pz_dressed=leptons_vec_dressed[0].Pz();
+    l0_e_dressed=leptons_vec_dressed[0].E();
+    l1_px_dressed=leptons_vec_dressed[1].Px();
+    l1_py_dressed=leptons_vec_dressed[1].Py();
+    l1_pz_dressed=leptons_vec_dressed[1].Pz();
+    l1_e_dressed=leptons_vec_dressed[1].E();
+
+    l0_px_bare=leptons_vec_bare[0].Px();
+    l0_py_bare=leptons_vec_bare[0].Py();
+    l0_pz_bare=leptons_vec_bare[0].Pz();
+    l0_e_bare=leptons_vec_bare[0].E();
+    l1_px_bare=leptons_vec_bare[1].Px();
+    l1_py_bare=leptons_vec_bare[1].Py();
+    l1_pz_bare=leptons_vec_bare[1].Pz();
+    l1_e_bare=leptons_vec_bare[1].E();
+
     weight=gen_weights.at(0);
 
     dytree->Fill();

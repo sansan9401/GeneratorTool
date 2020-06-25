@@ -58,6 +58,15 @@ echo "NCORE=$NCORE"
 echo $NEVENT|grep -q "[^0-9]" && { echo "NEVENT=$NEVENT is not integer... Exiting...";exit 1; }
 echo $NCORE|grep -q "[^0-9]" && { echo "NCORE=$NCORE is not integer... Exiting...";exit 1; }
 
+if [ -n "$POST_PROCESS" ];then
+    echo -n "Check script... "
+    CHECK=$(root -l -b < <(echo .L $POST_PROCESS+) 2>&1)
+    if echo $CHECK|grep -q error
+    then echo $CHECK; exit 1;
+    else echo "success"
+    fi
+fi
+
 if [ "$GENERATOR" = "Sherpa" ];then
     PYTHON_CONFIG_PATH="$CMSSW_BASE/src/MY/sherpa/python/sherpa_${PROCESSNAME}_MASTER_cff.py"
     CMSRUN_CMD='time cmsDriver.py ${PYTHON_CONFIG_PATH/"$CMSSW_BASE/src/"/} -s GEN -n $NEVENT --conditions auto:mc --eventcontent RAWSIM  --customise_commands \"process.RandomNumberGeneratorService.generator.initialSeed=$SEED\\nprocess.MessageLogger.cerr.FwkReport.reportEvery=1000\"'
