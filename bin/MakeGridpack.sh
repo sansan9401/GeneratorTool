@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MEMORYUSAGE=48000
+
 if [ -z "$1" -o -z "$2" ]
 then 
     echo "usage: $0 Sherpa|MG PROCESSNAME [NCORE] [fragment_template]"
@@ -77,18 +79,19 @@ then
   
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
-	condor_submit -batch-name Sherpa_MakeGridpack_$PROCESSNAME <<EOF
+      condor_submit -batch-name Sherpa_MakeGridpack_$PROCESSNAME <<EOF
 executable = Sherpa_MakeGridpack_${PROCESSNAME}.sh
 output = Sherpa_MakeGridpack_${PROCESSNAME}.out
 error = Sherpa_MakeGridpack_${PROCESSNAME}.err
 log = Sherpa_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
+request_memory = ${MEMORYUSAGE}
 getenv = true
 queue
 EOF
-	condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
+      condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
     else 
-	./Sherpa_MakeGridpack_${PROCESSNAME}.sh
+      ./Sherpa_MakeGridpack_${PROCESSNAME}.sh
     fi
 else
     NJETMAX=$(GetNJetMax $GENERATOR $PROCESSNAME)
@@ -104,24 +107,25 @@ else
     SCRIPT=MG_MakeGridpack_${PROCESSNAME}.sh
     echo "#!/bin/bash" > $SCRIPT
     echo "cd $MG_RUN_DIR" >>$SCRIPT
-    echo time env -i 'HOME=$HOME' NB_CORE=$NCORE 'PYTHONPATH=$PYTHONPATH' bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME local ALL $SCRAM_ARCH $CMSSW_VERSION\" >>$SCRIPT
+    #echo time env -i 'HOME=$HOME' NB_CORE=$NCORE 'PYTHONPATH=$PYTHONPATH' bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME local ALL $SCRAM_ARCH $CMSSW_VERSION\" >>$SCRIPT
+    echo time env -i 'HOME=`pwd`' NB_CORE=$NCORE 'PYTHONPATH=$PYTHONPATH' bash -l -c \"source /cvmfs/cms.cern.ch/cmsset_default.sh\; ./gridpack_generation.sh $PROCESSNAME Card/$PROCESSNAME local ALL $SCRAM_ARCH $CMSSW_VERSION\" >>$SCRIPT
     echo "mv ${PROCESSNAME}.log ${PROCESSNAME}_slc?_amd??_gcc???_CMSSW_*_tarball.tar.xz $GRIDPATH/" >>$SCRIPT
     echo "rm -rf ${PROCESSNAME}" >>$SCRIPT
     echo "cd $GRIDPATH" >>$SCRIPT
     if [ "$TEMPLATE" = AUTO ]
     then
-	if grep -q "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
-	then
-	    if [ "$NJETMAX" -gt 0 ]
-	    then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_FXFX_cff.py
-	    else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_NLO_cff.py
-	    fi	    
-	else 
-	    if [ "$NJETMAX" -gt 0 ]
-	    then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_MLM_cff.py
-	    else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_LO_cff.py
-	    fi
-	fi	
+      if grep -q "\[QCD\]" $CARDPATH/${PROCESSNAME}_proc_card.dat 
+      then
+          if [ "$NJETMAX" -gt 0 ]
+          then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_FXFX_cff.py
+          else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_NLO_cff.py
+          fi          
+      else 
+          if [ "$NJETMAX" -gt 0 ]
+          then TEMPLATE=$GENERATORTOOLS_BASE/python/MG_MLM_cff.py
+          else TEMPLATE=$GENERATORTOOLS_BASE/python/MG_LO_cff.py
+          fi
+      fi      
     fi
     echo "Using template $TEMPLATE"
     echo "$GENERATORTOOLS_BASE/bin/SetTune.sh MG $PROCESSNAME $TEMPLATE" >> $SCRIPT
@@ -129,18 +133,19 @@ else
 
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
-	condor_submit -batch-name MG_MakeGridpack_$PROCESSNAME <<EOF
+      condor_submit -batch-name MG_MakeGridpack_$PROCESSNAME <<EOF
 executable = MG_MakeGridpack_${PROCESSNAME}.sh
 output = MG_MakeGridpack_${PROCESSNAME}.out
 error = MG_MakeGridpack_${PROCESSNAME}.err
 log = MG_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
+request_memory = ${MEMORYUSAGE}
 getenv = true
 queue
 EOF
-	condor_wait MG_MakeGridpack_${PROCESSNAME}.log
+      condor_wait MG_MakeGridpack_${PROCESSNAME}.log
     else
-	./MG_MakeGridpack_${PROCESSNAME}.sh
+      ./MG_MakeGridpack_${PROCESSNAME}.sh
     fi    
 fi
 

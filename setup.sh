@@ -4,7 +4,7 @@
 #GENERATORTOOLS_STORAGE=""
 
 ## CMSSW version for Sherpa generation
-export GENERATORTOOLS_CMSSW_VERSION=CMSSW_10_2_18
+export GENERATORTOOLS_CMSSW_VERSION=CMSSW_10_6_13 #10_2_18
 
 ## You can set genproductions brach name, 
 GENPRODUCTIONS_BRANCH=""
