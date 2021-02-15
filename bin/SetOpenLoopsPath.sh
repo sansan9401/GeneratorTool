@@ -7,7 +7,7 @@ then
     exit 1
 fi
 
-OL_PREFIX=$(realpath $1)
+OL_PREFIX=$(readlink -m $1)
 echo OL_PREFIX=$OL_PREFIX
 
 LIST=($(find $GENERATORTOOLS_BASE/Sherpa/Card -name "Run.dat*"))

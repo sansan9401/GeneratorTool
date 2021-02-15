@@ -13,7 +13,7 @@ CheckCMSSW
 
 GENERATOR=$1
 PROCESSNAME=$2
-ROOTSCRIPT=$(realpath $3)
+ROOTSCRIPT=$(readlink -m $3)
 EVENT_DIR=$GENERATORTOOLS_BASE/$GENERATOR/Event/$PROCESSNAME
 
 echo "GENERATOR=$GENERATOR"
@@ -43,7 +43,7 @@ echo -n "Submitting jobs"
 for FILE in "${FILES[@]}"
 do
     cd $GENERATORTOOLS_BASE
-    REALPATH=$(realpath $FILE)
+    REALPATH=$(readlink -m $FILE)
     DIRNAME=$(dirname $REALPATH)
     BASENAME=$(basename $REALPATH)
 

@@ -26,7 +26,7 @@ fi
 PROCESSNAME=$2
 NCORE=${3:-1}
 if [ ! -z "$4" ]
-then TEMPLATE=$(realpath $4)
+then TEMPLATE=$(readlink -m $4)
 else TEMPLATE=AUTO
 fi
 echo "GENERATOR=$GENERATOR"
@@ -47,7 +47,7 @@ then
     exit 1
 fi
 
-CARDPATH=$(realpath $CARDPATH)
+CARDPATH=$(readlink -m $CARDPATH)
 
 if [ "$GENERATOR" = Sherpa ]
 then
@@ -77,6 +77,9 @@ then
   
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
+	if [ -n "$GENERATORTOOLS_SINGULARITY" ]; then SINGULARITY_LINE="+SingularityImage = \"$GENERATORTOOLS_SINGULARITY\""
+        else SINGULARITY_LINE=""
+	fi
 	condor_submit -batch-name Sherpa_MakeGridpack_$PROCESSNAME <<EOF
 executable = Sherpa_MakeGridpack_${PROCESSNAME}.sh
 output = Sherpa_MakeGridpack_${PROCESSNAME}.out
@@ -84,6 +87,7 @@ error = Sherpa_MakeGridpack_${PROCESSNAME}.err
 log = Sherpa_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
 getenv = true
+${SINGULARITY_LINE}
 queue
 EOF
 	condor_wait Sherpa_MakeGridpack_${PROCESSNAME}.log
@@ -135,13 +139,18 @@ else
 
     if [[ $GENERATORTOOLS_USECONDOR ]]
     then
+	if [ -n "$GENERATORTOOLS_SINGULARITY" ]; then SINGULARITY_LINE="+SingularityImage = \"$GENERATORTOOLS_SINGULARITY\""
+        else SINGULARITY_LINE=""
+	fi
 	condor_submit -batch-name MG_MakeGridpack_$PROCESSNAME <<EOF
 executable = MG_MakeGridpack_${PROCESSNAME}.sh
 output = MG_MakeGridpack_${PROCESSNAME}.out
 error = MG_MakeGridpack_${PROCESSNAME}.err
 log = MG_MakeGridpack_${PROCESSNAME}.log
 request_cpus = $NCORE
+request_memory = 16000
 getenv = true
+${SINGULARITY_LINE}
 queue
 EOF
 	condor_wait MG_MakeGridpack_${PROCESSNAME}.log

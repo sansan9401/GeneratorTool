@@ -34,6 +34,12 @@ then
     export GENERATORTOOLS_USECONDOR=1
 fi
 
+## sigularity image for condor job
+export GENERATORTOOLS_SINGULARITY="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
+if [ -n "$GENERATORTOOLS_SINGULARITY" ];then
+    echo "Use singularity image $GENERATORTOOLS_SINGULARITY"
+fi
+
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 echo "[GeneratorTools] check $GENERATORTOOLS_CMSSW_VERSION for sherpa"
 if [ ! -d "$GENERATORTOOLS_BASE/external/$GENERATORTOOLS_CMSSW_VERSION" ]

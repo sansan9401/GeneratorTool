@@ -15,7 +15,7 @@ while (( "$#" )); do
 	    MEMORY=$2
 	    shift 2;;
 	--post-process) ## post-process script
-	    POST_PROCESS=$(realpath $2)
+	    POST_PROCESS=$(readlink -m $2)
 	    shift 2;;
 	--delete) ## delete all except event root file
 	    DELETE=true
